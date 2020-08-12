@@ -200,17 +200,42 @@ void Timeline::contextMenuEvent(QContextMenuEvent* ev)
     if( wid )
     {
         QMenu menu;
+        QAction* rename;
+        QAction* resize;
         QAction* act;
-        menu.addAction( "Rename" );
+
+        rename = menu.addAction( "Rename" );
+        resize = menu.addAction( "Set Duration" );
+        menu.addSeparator();
+        menu.addAction( "Delete" );
+
         act = menu.exec( ev->globalPos() );
         if( act )
         {
             ColorLabel* cl = static_cast<ColorLabel*>( wid );
-            bool ok;
-            QString text = QInputDialog::getText(this, "Rename", "Name:",
+            if( act == rename )
+            {
+                bool ok;
+                QString text = QInputDialog::getText(this, "Rename", "Name:",
                                         QLineEdit::Normal, cl->text(), &ok );
-            if( ok && ! text.isEmpty() )
-                cl->setText( text );
+                if( ok && ! text.isEmpty() )
+                    cl->setText( text );
+            }
+            else if( act == resize )
+            {
+                bool ok;
+                double dur = QInputDialog::getDouble(this,
+                        "Set Duration", "Duration:",
+                        double(cl->width()) / double(_pixPerSec), 0.1, 5.0,
+                        1, &ok );
+                if( ok )
+                    cl->setFixedWidth( int(dur * _pixPerSec) - 1 );
+            }
+            else
+            {
+                // TODO: Remove subject row if wid is name.
+                wid->deleteLater();
+            }
         }
     }
 }
