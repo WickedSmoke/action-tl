@@ -2,6 +2,7 @@
 #include <string.h>
 #include <QApplication>
 #include <QBoxLayout>
+#include <QPushButton>
 #include <QDropEvent>
 #include <QDoubleSpinBox>
 #include <QGridLayout>
@@ -82,10 +83,11 @@ Timeline::Timeline( QWidget* parent ) : QWidget(parent)
 {
     _pixPerSec = 70;
     _startTime = 0;
+    _subject = 0;
 
     setAcceptDrops(true);
     setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Minimum );
-    _lo = new QHBoxLayout(this);
+    _lo = new QVBoxLayout(this);
     _lo->setSpacing(0);
 }
 
@@ -96,7 +98,11 @@ void Timeline::addSubject( const QString& name )
     ColorLabel* cl = new ColorLabel(name);
     cl->setFixedSize( 120, 20 );
     cl->setColor( Qt::black );
-    _lo->addWidget( cl );
+
+    QBoxLayout* slo = new QHBoxLayout;
+    slo->addWidget( cl );
+    slo->addStretch();
+    _lo->addLayout( slo );
 #else
     _lo->addWidget( new QLabel(name) );
 #endif
@@ -129,11 +135,16 @@ void Timeline::dropEvent(QDropEvent* ev)
     int duration = actionDur[ actionId(CSTR(name)) ];
 
     ColorLabel* cl = new ColorLabel( name );
-    cl->setFixedSize( _pixPerSec * duration, 20 );
+    cl->setFixedSize( _pixPerSec * duration - 1, 20 );
     cl->setColor( Qt::darkGray );
-    _lo->addWidget( cl );
 
-    ev->acceptProposedAction();
+    QBoxLayout* slo;
+    QLayoutItem* item = _lo->itemAt( _subject );
+    if( item && (slo = static_cast<QBoxLayout*>(item->layout())) )
+    {
+        slo->insertWidget( slo->count() - 1, cl );
+        ev->acceptProposedAction();
+    }
 }
 
 
@@ -166,31 +177,48 @@ ActionTimeline::ActionTimeline( QWidget* parent ) : QWidget(parent)
 {
     setWindowTitle( "Action Timeline" );
 
-    QBoxLayout* lo = new QHBoxLayout(this);
+    _tl = new Timeline;
 
-    Timeline* tl = new Timeline;
-    tl->addSubject( "<unnamed>" );
-    lo->addWidget( tl );
+    QListWidget* list = new QListWidget;
+    list->setDragEnabled(true);
+    list->setSizePolicy( QSizePolicy::Maximum, QSizePolicy::Expanding );
+    for( int i = 0; i < ACT_COUNT; ++i )
+        list->addItem( QString(actionName[i]) );
 
-    QGridLayout* grid = new QGridLayout;
-    lo->addLayout( grid );
+    QPushButton* btn = new QPushButton("+");
+    connect( btn, SIGNAL(clicked(bool)), this, SLOT(newSubject()) );
 
-        QListWidget* list = new QListWidget;
-        list->setDragEnabled(true);
-        list->setSizePolicy( QSizePolicy::Maximum, QSizePolicy::Expanding );
-        for( int i = 0; i < ACT_COUNT; ++i )
-            list->addItem( QString(actionName[i]) );
-        grid->addWidget( list, 0, 0, 1, 2 );
+    QLabel* label = new QLabel("Scale:");
+    label->setAlignment( Qt::AlignRight );
 
-        QLabel* label = new QLabel("Scale:");
-        label->setAlignment( Qt::AlignRight );
-        grid->addWidget( label, 1, 0 );
+    QDoubleSpinBox* spin = new QDoubleSpinBox;
+    spin->setRange( 0.1, 5.0 );
+    spin->setSingleStep( 0.1 );
+    spin->setValue( 1.0 );
 
-        QDoubleSpinBox* spin = new QDoubleSpinBox;
-        spin->setRange( 0.1, 5.0 );
-        spin->setSingleStep( 0.1 );
-        spin->setValue( 1.0 );
-        grid->addWidget( spin, 1, 1 );
+    QGridLayout* grid = new QGridLayout(this);
+    grid->addWidget( _tl,   0, 0, 1, 2 );
+    grid->addWidget( list,  0, 2, 1, 2 );
+    grid->addWidget( btn,   1, 0 );
+    grid->addWidget( label, 1, 2 );
+    grid->addWidget( spin,  1, 3 );
+    grid->setColumnStretch( 1, 1 );
+}
+
+
+void ActionTimeline::loadSubjects( const char* )
+{
+    //_tl->clear();
+    _tl->addSubject( "Joseph" );
+    _tl->addSubject( "Farnell" );
+    _tl->addSubject( "Enemy 1" );
+    _tl->addSubject( "Enemy 2" );
+}
+
+
+void ActionTimeline::newSubject()
+{
+    _tl->addSubject( "<unnamed>" );
 }
 
 
@@ -198,7 +226,11 @@ int main( int argc, char** argv )
 {
     QApplication app( argc, argv );
     ActionTimeline win;
-    win.resize( 948, 270 );
+    win.resize( 980, 270 );
     win.show();
+    if( argc > 1 )
+        win.loadSubjects( argv[1] );
+    else
+        win.newSubject();
     return app.exec();
 }

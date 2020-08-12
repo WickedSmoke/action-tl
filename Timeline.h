@@ -21,14 +21,21 @@ private:
     QBoxLayout* _lo;
     int _pixPerSec;
     int _startTime;
+    int _subject;
 };
 
 class ActionTimeline : public QWidget
 {
+    Q_OBJECT
 public:
     ActionTimeline( QWidget* parent = NULL );
+    void loadSubjects(const char*);
+public slots:
+    void newSubject();
 private:
     ActionTimeline(const Timeline&);
+
+    Timeline* _tl;
 };
 
 #endif //TIMELINE_H
