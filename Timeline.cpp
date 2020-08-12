@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include <QApplication>
 #include <QBoxLayout>
 #include <QDropEvent>
@@ -14,7 +15,7 @@
 #define CSTR(qs)    qs.toLocal8Bit().constData()
 
 #define ACT_COUNT   9
-const char* actionName[ ACT_COUNT ] = {
+static const char* actionName[ ACT_COUNT ] = {
     "Walk",
     "Run",
     "Attack",
@@ -25,6 +26,21 @@ const char* actionName[ ACT_COUNT ] = {
     "Wait 1",
     "Wait 2"
 };
+
+static const int actionDur[ ACT_COUNT ] = {
+    2, 2, 3, 2, 5, 1, 5, 1, 2
+};
+
+
+static int actionId( const char* str )
+{
+    for( int i = 0; i < ACT_COUNT; ++i )
+    {
+        if( strcmp( actionName[i], str ) == 0 )
+            return i;
+    }
+    return 0;
+}
 
 
 // QLabel with direct color control.
@@ -46,17 +62,22 @@ protected:
         QPainter p(this);
         QFontMetrics fm( fontMetrics() );
         QColor pcol = palette().color( QPalette::Text );
+        int h = height();
+        int pad = (h - fm.height()) / 2;
 
         p.setPen( pcol );
         p.setBrush( QBrush() );
-        p.drawRect( 0, 0, width()-1, height()-1 );
-        p.drawText( 4, height() - fm.descent(), text() );
+        p.drawRect( 0, 0, width()-1, h-1 );
+        p.drawText( 4, h - fm.descent() - pad, text() );
     }
 };
 
 
 Timeline::Timeline( QWidget* parent ) : QWidget(parent)
 {
+    _pixPerSec = 70;
+    _startTime = 0;
+
     setAcceptDrops(true);
     setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Minimum );
     _lo = new QHBoxLayout(this);
@@ -67,7 +88,7 @@ void Timeline::addSubject( const QString& name )
 {
 #if 1
     ColorLabel* cl = new ColorLabel(name);
-    cl->setFixedWidth( 120 );
+    cl->setFixedSize( 120, 20 );
     cl->setColor( Qt::black );
     _lo->addWidget( cl );
 #else
@@ -96,10 +117,14 @@ void Timeline::dropEvent(QDropEvent* ev)
 {
     QStandardItemModel model;
     model.dropMimeData( ev->mimeData(), Qt::CopyAction, 0, 0, QModelIndex() );
-    //printf( "drop %s\n", CSTR(model.item(0, 0)->text()) );
+    QString name( model.item(0, 0)->text() );
+    //printf( "drop %s\n", CSTR(name) );
 
-    ColorLabel* cl = new ColorLabel( model.item(0, 0)->text() );
-    cl->setColor( Qt::white );
+    int duration = actionDur[ actionId(CSTR(name)) ];
+
+    ColorLabel* cl = new ColorLabel( name );
+    cl->setFixedSize( _pixPerSec * duration, 20 );
+    cl->setColor( Qt::darkGray );
     _lo->addWidget( cl );
 
     ev->acceptProposedAction();
