@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdio.h>
 #include <string.h>
 #include <QApplication>
@@ -83,12 +84,55 @@ Timeline::Timeline( QWidget* parent ) : QWidget(parent)
 {
     _pixPerSec = 70;
     _startTime = 0;
-    _subject = 0;
+    _subject = -1;
 
     setAcceptDrops(true);
     setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Minimum );
     _lo = new QVBoxLayout(this);
     _lo->setSpacing(0);
+}
+
+
+void Timeline::select( int index )
+{
+    if( _subject != index )
+    {
+        ColorLabel* cl;
+        if( (cl = selectedNameLabel()) )
+            cl->setColor( Qt::black );
+
+        _subject = index;
+
+        if( (cl = selectedNameLabel()) )
+            cl->setColor( Qt::darkYellow );
+    }
+}
+
+
+ColorLabel* Timeline::selectedNameLabel()
+{
+    if( hasSelection() )
+    {
+        ColorLabel* cl;
+        QLayout* slo;
+        QLayoutItem* item = _lo->itemAt( _subject );
+        if( item && (slo = item->layout()) )
+        {
+            item = slo->itemAt( 0 );
+            if( item && (cl = static_cast<ColorLabel*>(item->widget())) )
+                return cl;
+        }
+    }
+    return NULL;
+}
+
+
+void Timeline::removeSelected()
+{
+    if( hasSelection() )
+    {
+        //TODO
+    }
 }
 
 
@@ -117,7 +161,7 @@ void Timeline::dragEnterEvent(QDragEnterEvent* ev)
         printf( "fmt %s\n", CSTR(fmt.at(i)) );
 #endif
 
-    if( _lo->count() > 0 &&
+    if( hasSelection() &&
         ev->mimeData()->hasFormat("application/x-qabstractitemmodeldatalist") )
     {
          ev->acceptProposedAction();
@@ -137,6 +181,8 @@ void Timeline::dropEvent(QDropEvent* ev)
     ColorLabel* cl = new ColorLabel( name );
     cl->setFixedSize( _pixPerSec * duration - 1, 20 );
     cl->setColor( Qt::darkGray );
+
+    assert( hasSelection() );
 
     QBoxLayout* slo;
     QLayoutItem* item = _lo->itemAt( _subject );
@@ -167,6 +213,47 @@ void Timeline::contextMenuEvent(QContextMenuEvent* ev)
                 cl->setText( text );
         }
     }
+}
+
+
+void Timeline::mousePressEvent(QMouseEvent* ev)
+{
+    QPoint pnt( ev->pos() );
+    QLayoutItem* item;
+    int count = _lo->count();
+    for( int i = 0; i < count; ++i )
+    {
+        item = _lo->itemAt(i);
+        if( item->geometry().contains( pnt ) )
+        {
+            select(i);
+            return;
+        }
+    }
+}
+
+
+void Timeline::wheelEvent(QWheelEvent* ev)
+{
+    int count = _lo->count();
+    if( ! count )
+        return;
+
+    int n = 0;
+    if( hasSelection() )
+    {
+        if( ev->angleDelta().y() > 0 )
+        {
+            n = (_subject > 0) ? _subject-1 : count-1;
+        }
+        else
+        {
+            n = _subject+1;
+            if( n == count )
+                n = 0;
+        }
+    }
+    select(n);
 }
 
 
@@ -206,13 +293,14 @@ ActionTimeline::ActionTimeline( QWidget* parent ) : QWidget(parent)
 }
 
 
-void ActionTimeline::loadSubjects( const char* )
+void ActionTimeline::loadSubjects( int count, char** names )
 {
-    //_tl->clear();
-    _tl->addSubject( "Joseph" );
-    _tl->addSubject( "Farnell" );
-    _tl->addSubject( "Enemy 1" );
-    _tl->addSubject( "Enemy 2" );
+    if( count > 0 )
+    {
+        for( int i = 0; i < count; ++i )
+            _tl->addSubject( names[i] );
+        _tl->select( 0 );
+    }
 }
 
 
@@ -229,7 +317,7 @@ int main( int argc, char** argv )
     win.resize( 980, 270 );
     win.show();
     if( argc > 1 )
-        win.loadSubjects( argv[1] );
+        win.loadSubjects( argc-1, argv+1 );
     else
         win.newSubject();
     return app.exec();

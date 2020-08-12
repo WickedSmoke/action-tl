@@ -4,24 +4,30 @@
 #include <QWidget>
 
 class QBoxLayout;
+class ColorLabel;
 
 class Timeline : public QWidget
 {
 public:
     Timeline( QWidget* parent = NULL );
     void addSubject( const QString& name );
-    //void removeSelected( const QString& name );
+    bool hasSelection() const { return _subject >= 0; }
+    void select(int);
+    void removeSelected();
 protected:
     void dragEnterEvent(QDragEnterEvent*);
     void dropEvent(QDropEvent*);
     void contextMenuEvent(QContextMenuEvent*);
+    void mousePressEvent(QMouseEvent*);
+    void wheelEvent(QWheelEvent*);
 private:
+    ColorLabel* selectedNameLabel();
     Timeline(const Timeline&);
 
     QBoxLayout* _lo;
-    int _pixPerSec;
-    int _startTime;
-    int _subject;
+    int _pixPerSec;     // Pixels per second scale.
+    int _startTime;     // Time at left side of timeline.
+    int _subject;       // Selected subject index.
 };
 
 class ActionTimeline : public QWidget
@@ -29,7 +35,7 @@ class ActionTimeline : public QWidget
     Q_OBJECT
 public:
     ActionTimeline( QWidget* parent = NULL );
-    void loadSubjects(const char*);
+    void loadSubjects( int count, char** names );
 public slots:
     void newSubject();
 private:
