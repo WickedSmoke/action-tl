@@ -14,6 +14,7 @@ public:
 protected:
     void dragEnterEvent(QDragEnterEvent*);
     void dropEvent(QDropEvent*);
+    void contextMenuEvent(QContextMenuEvent*);
 private:
     Timeline(const Timeline&);
 

@@ -5,8 +5,10 @@
 #include <QDropEvent>
 #include <QDoubleSpinBox>
 #include <QGridLayout>
+#include <QInputDialog>
 #include <QLabel>
 #include <QListWidget>
+#include <QMenu>
 #include <QMimeData>
 #include <QPainter>
 #include <QStandardItemModel>
@@ -73,6 +75,9 @@ protected:
 };
 
 
+//----------------------------------------------------------------------------
+
+
 Timeline::Timeline( QWidget* parent ) : QWidget(parent)
 {
     _pixPerSec = 70;
@@ -81,6 +86,7 @@ Timeline::Timeline( QWidget* parent ) : QWidget(parent)
     setAcceptDrops(true);
     setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Minimum );
     _lo = new QHBoxLayout(this);
+    _lo->setSpacing(0);
 }
 
 
@@ -131,6 +137,31 @@ void Timeline::dropEvent(QDropEvent* ev)
 }
 
 
+void Timeline::contextMenuEvent(QContextMenuEvent* ev)
+{
+    QWidget* wid = childAt( ev->pos() );
+    if( wid )
+    {
+        QMenu menu;
+        QAction* act;
+        menu.addAction( "Rename" );
+        act = menu.exec( ev->globalPos() );
+        if( act )
+        {
+            ColorLabel* cl = static_cast<ColorLabel*>( wid );
+            bool ok;
+            QString text = QInputDialog::getText(this, "Rename", "Name:",
+                                        QLineEdit::Normal, cl->text(), &ok );
+            if( ok && ! text.isEmpty() )
+                cl->setText( text );
+        }
+    }
+}
+
+
+//----------------------------------------------------------------------------
+
+
 ActionTimeline::ActionTimeline( QWidget* parent ) : QWidget(parent)
 {
     setWindowTitle( "Action Timeline" );
@@ -138,7 +169,7 @@ ActionTimeline::ActionTimeline( QWidget* parent ) : QWidget(parent)
     QBoxLayout* lo = new QHBoxLayout(this);
 
     Timeline* tl = new Timeline;
-    tl->addSubject( "<Person 1yg>" );
+    tl->addSubject( "<unnamed>" );
     lo->addWidget( tl );
 
     QGridLayout* grid = new QGridLayout;
