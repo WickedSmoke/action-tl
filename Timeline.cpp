@@ -13,6 +13,7 @@
 #include <QMenu>
 #include <QMimeData>
 #include <QPainter>
+#include <QRandomGenerator>
 #include <QStandardItemModel>
 #include "Timeline.h"
 
@@ -253,10 +254,12 @@ void Timeline::contextMenuEvent(QContextMenuEvent* ev)
     if( wid )
     {
         QMenu menu;
+        QAction* resolv;
         QAction* rename;
         QAction* resize;
         QAction* act;
 
+        resolv = menu.addAction( "Resolve" );
         rename = menu.addAction( "Rename" );
         resize = menu.addAction( "Set Duration" );
         menu.addSeparator();
@@ -266,7 +269,14 @@ void Timeline::contextMenuEvent(QContextMenuEvent* ev)
         if( act )
         {
             ColorLabel* cl = static_cast<ColorLabel*>( wid );
-            if( act == rename )
+            if( act == resolv )
+            {
+                int n = QRandomGenerator::global()->bounded(20) + 1;
+                QString text( cl->text() );
+                text.append( " %1" );
+                cl->setText( text.arg(n) );
+            }
+            else if( act == rename )
             {
                 bool ok;
                 QString text = QInputDialog::getText(this, "Rename", "Name:",
