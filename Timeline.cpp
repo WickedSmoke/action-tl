@@ -324,24 +324,46 @@ void Timeline::mousePressEvent(QMouseEvent* ev)
 void Timeline::wheelEvent(QWheelEvent* ev)
 {
     int count = _lo->count();
-    if( ! count )
-        return;
 
-    int n = 0;
-    if( hasSelection() )
+    if( ev->modifiers() & Qt::ShiftModifier )
     {
-        if( ev->angleDelta().y() > 0 )
+        if( count > 1 && hasSelection() )
         {
-            n = (_subject > 0) ? _subject-1 : count-1;
-        }
-        else
-        {
-            n = _subject+1;
-            if( n == count )
-                n = 0;
+            int n;
+            if( ev->angleDelta().y() > 0 )
+            {
+                n = (_subject > 0) ? _subject-1 : count-1;
+            }
+            else
+            {
+                n = _subject+1;
+                if( n == count )
+                    n = 0;
+            }
+
+            QLayoutItem* item = _lo->takeAt( _subject );
+            _lo->insertItem( n, item );
+            _subject = n;   // No need to call select().
         }
     }
-    select(n);
+    else if( count )
+    {
+        int n = 0;
+        if( hasSelection() )
+        {
+            if( ev->angleDelta().y() > 0 )
+            {
+                n = (_subject > 0) ? _subject-1 : count-1;
+            }
+            else
+            {
+                n = _subject+1;
+                if( n == count )
+                    n = 0;
+            }
+        }
+        select(n);
+    }
 }
 
 
