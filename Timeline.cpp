@@ -18,21 +18,26 @@
 
 #define CSTR(qs)    qs.toLocal8Bit().constData()
 
-#define ACT_COUNT   9
+#define ACT_COUNT   12
 static const char* actionName[ ACT_COUNT ] = {
     "Walk",
     "Run",
     "Attack",
     "Defend",
+
+    "Shoot",
     "Drink",
+    "Draw",
     "Equip",
+
     "Pickup",
+    "Throw",
     "Wait 1",
     "Wait 2"
 };
 
 static const int actionDur[ ACT_COUNT ] = {
-    2, 2, 3, 2, 5, 1, 5, 1, 2
+    2, 2, 5, 4,   5, 5, 1, 6,   3, 3, 1, 2
 };
 
 
@@ -127,12 +132,60 @@ ColorLabel* Timeline::selectedNameLabel()
 }
 
 
-void Timeline::removeSelected()
+void Timeline::saveImage()
 {
-    if( hasSelection() )
+    QString fn( "/tmp/action-%1-%2sec.jpeg" );
+    QImage img( size(), QImage::Format_RGB888 );
+    render( &img );
+    img.save( fn.arg( QCoreApplication::applicationPid() ).arg( _startTime ) );
+}
+
+
+void Timeline::advance( int sec )
+{
+    QLayout* slo;
+    QLayoutItem* item;
+    QWidget* wid;
+    int count, sc;
+    int pdur, rem, w;
+
+    if( sec < 1 )
+        return;
+
+    pdur = _pixPerSec * sec;
+    count = _lo->count();
+    for( int i = 0; i < count; ++i )
     {
-        //TODO
+        item = _lo->itemAt(i);
+        if( item && (slo = item->layout()) )
+        {
+            rem = pdur;
+            sc = slo->count();
+            for( int ai = 1; ai < sc; ++ai )
+            {
+                item = slo->itemAt(ai);
+                wid = item->widget();
+
+                w = item->geometry().width();
+                if( rem < w )
+                {
+                    if( wid )
+                        wid->setFixedWidth( w - rem );
+                }
+                else
+                {
+                    rem -= w + 1;
+                    if( wid )
+                        wid->deleteLater();
+                }
+
+                if( rem < 1 )
+                    break;
+            }
+        }
     }
+
+    _startTime += sec;
 }
 
 
@@ -226,7 +279,7 @@ void Timeline::contextMenuEvent(QContextMenuEvent* ev)
                 bool ok;
                 double dur = QInputDialog::getDouble(this,
                         "Set Duration", "Duration:",
-                        double(cl->width()) / double(_pixPerSec), 0.1, 5.0,
+                        double(cl->width()) / double(_pixPerSec), 0.1, 9.0,
                         1, &ok );
                 if( ok )
                     cl->setFixedWidth( int(dur * _pixPerSec) - 1 );
@@ -297,8 +350,11 @@ ActionTimeline::ActionTimeline( QWidget* parent ) : QWidget(parent)
     for( int i = 0; i < ACT_COUNT; ++i )
         list->addItem( QString(actionName[i]) );
 
-    QPushButton* btn = new QPushButton("+");
-    connect( btn, SIGNAL(clicked(bool)), this, SLOT(newSubject()) );
+    QPushButton* add = new QPushButton("+");
+    connect( add, SIGNAL(clicked(bool)), this, SLOT(newSubject()) );
+
+    QPushButton* adv = new QPushButton(">>");
+    connect( adv, SIGNAL(clicked(bool)), this, SLOT(advance()) );
 
     QLabel* label = new QLabel("Scale:");
     label->setAlignment( Qt::AlignRight );
@@ -308,13 +364,17 @@ ActionTimeline::ActionTimeline( QWidget* parent ) : QWidget(parent)
     spin->setSingleStep( 0.1 );
     spin->setValue( 1.0 );
 
+    QBoxLayout* lo = new QHBoxLayout;
+    lo->addWidget( add );
+    lo->addWidget( adv );
+    lo->addStretch();
+
     QGridLayout* grid = new QGridLayout(this);
-    grid->addWidget( _tl,   0, 0, 1, 2 );
-    grid->addWidget( list,  0, 2, 1, 2 );
-    grid->addWidget( btn,   1, 0 );
-    grid->addWidget( label, 1, 2 );
-    grid->addWidget( spin,  1, 3 );
-    grid->setColumnStretch( 1, 1 );
+    grid->addWidget( _tl,   0, 0 );
+    grid->addWidget( list,  0, 1, 1, 2 );
+    grid->addLayout( lo,    1, 0 );
+    grid->addWidget( label, 1, 1 );
+    grid->addWidget( spin,  1, 2 );
 }
 
 
@@ -335,11 +395,18 @@ void ActionTimeline::newSubject()
 }
 
 
+void ActionTimeline::advance()
+{
+    _tl->saveImage();
+    _tl->advance( 10 );
+}
+
+
 int main( int argc, char** argv )
 {
     QApplication app( argc, argv );
     ActionTimeline win;
-    win.resize( 980, 270 );
+    win.resize( 980, 350 );
     win.show();
     if( argc > 1 )
         win.loadSubjects( argc-1, argv+1 );

@@ -13,7 +13,8 @@ public:
     void addSubject( const QString& name );
     bool hasSelection() const { return _subject >= 0; }
     void select(int);
-    void removeSelected();
+    void saveImage();
+    void advance( int sec );
 protected:
     void dragEnterEvent(QDragEnterEvent*);
     void dropEvent(QDropEvent*);
@@ -38,6 +39,7 @@ public:
     void loadSubjects( int count, char** names );
 public slots:
     void newSubject();
+    void advance();
 private:
     ActionTimeline(const Timeline&);
 
