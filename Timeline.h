@@ -13,6 +13,7 @@ public:
     void addSubject( const QString& name );
     bool hasSelection() const { return _subject >= 0; }
     void select(int);
+    bool appendAction(int);
     void saveImage();
     void advance( int sec );
     int  startTime() const { return _startTime; }
@@ -37,6 +38,7 @@ private:
 
 class QComboBox;
 class QLineEdit;
+class QListWidgetItem;
 
 class ActionTimeline : public QWidget
 {
@@ -46,6 +48,7 @@ public:
     void loadSubjects( int count, char** names );
 public slots:
     void newSubject();
+    void addAction(QListWidgetItem*);
     void advance();
     void timeEdited();
 private:

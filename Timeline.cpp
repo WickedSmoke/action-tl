@@ -1,4 +1,3 @@
-#include <assert.h>
 #include <stdio.h>
 #include <string.h>
 #include <QApplication>
@@ -218,6 +217,27 @@ void Timeline::addSubject( const QString& name )
 }
 
 
+bool Timeline::appendAction( int id )
+{
+    if( hasSelection() )
+    {
+        QBoxLayout* slo;
+        QLayoutItem* item = _lo->itemAt( _subject );
+        if( item && (slo = static_cast<QBoxLayout*>(item->layout())) )
+        {
+            ColorLabel* cl = new ColorLabel( actionName[id] );
+            cl->setFixedSize( _pixPerSec * actionDur[id] - 1,
+                              SUBJECT_HEIGHT(cl) );
+            cl->setColor( Qt::darkGray );
+
+            slo->insertWidget( slo->count() - 1, cl );
+            return true;
+        }
+    }
+    return false;
+}
+
+
 void Timeline::dragEnterEvent(QDragEnterEvent* ev)
 {
 #if 0
@@ -248,21 +268,8 @@ void Timeline::dropEvent(QDropEvent* ev)
     QString name( model.item(0, 0)->text() );
     //printf( "drop %s\n", CSTR(name) );
 
-    int duration = actionDur[ actionId(CSTR(name)) ];
-
-    ColorLabel* cl = new ColorLabel( name );
-    cl->setFixedSize( _pixPerSec * duration - 1, SUBJECT_HEIGHT(cl) );
-    cl->setColor( Qt::darkGray );
-
-    assert( hasSelection() );
-
-    QBoxLayout* slo;
-    QLayoutItem* item = _lo->itemAt( _subject );
-    if( item && (slo = static_cast<QBoxLayout*>(item->layout())) )
-    {
-        slo->insertWidget( slo->count() - 1, cl );
+    if( appendAction( actionId(CSTR(name)) ) )
         ev->acceptProposedAction();
-    }
 }
 
 
@@ -403,7 +410,11 @@ ActionTimeline::ActionTimeline( QWidget* parent ) : QWidget(parent)
     list->setDragEnabled(true);
     list->setSizePolicy( QSizePolicy::Maximum, QSizePolicy::Expanding );
     for( int i = 0; i < ACT_COUNT; ++i )
-        list->addItem( QString(actionName[i]) );
+    {
+        new QListWidgetItem( QString(actionName[i]), list, i );
+    }
+    connect( list, SIGNAL(itemActivated(QListWidgetItem*)),
+             this, SLOT(addAction(QListWidgetItem*)) );
 
     QPushButton* add = new QPushButton("+");
     connect( add, SIGNAL(clicked(bool)), this, SLOT(newSubject()) );
@@ -450,6 +461,12 @@ void ActionTimeline::loadSubjects( int count, char** names )
 void ActionTimeline::newSubject()
 {
     _tl->addSubject( "<unnamed>" );
+}
+
+
+void ActionTimeline::addAction(QListWidgetItem* item)
+{
+    _tl->appendAction( item->type() );
 }
 
 
