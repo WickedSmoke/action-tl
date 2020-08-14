@@ -425,17 +425,17 @@ ActionTimeline::ActionTimeline( QWidget* parent ) : QWidget(parent)
     QPushButton* add = new QPushButton("+");
     connect( add, SIGNAL(clicked(bool)), this, SLOT(newSubject()) );
 
-    QPushButton* up = new QPushButton("Up");
+    QPushButton* up = new QPushButton;
     connect( up, SIGNAL(clicked(bool)), this, SLOT(subjectUp()) );
 
-    QPushButton* down = new QPushButton("Down");
+    QPushButton* down = new QPushButton;
     connect( down, SIGNAL(clicked(bool)), this, SLOT(subjectDown()) );
 
     _turn = new QComboBox;
     _turn->addItem( "6 sec" );
     _turn->addItem( "10 sec" );
 
-    QPushButton* adv = new QPushButton(">>");
+    QPushButton* adv = new QPushButton;
     connect( adv, SIGNAL(clicked(bool)), this, SLOT(advance()) );
 
     _time = new QLineEdit( "0" );
@@ -443,6 +443,11 @@ ActionTimeline::ActionTimeline( QWidget* parent ) : QWidget(parent)
     _time->setValidator( new QIntValidator(0, 999, this) );
     connect( _time, SIGNAL(textEdited(const QString&)),
              this, SLOT(timeEdited()) );
+
+    QStyle* st = QApplication::style();
+    up->setIcon  ( st->standardIcon(QStyle::SP_ArrowUp) );
+    down->setIcon( st->standardIcon(QStyle::SP_ArrowDown) );
+    adv->setIcon ( st->standardIcon(QStyle::SP_MediaPlay) );
 
     QBoxLayout* lo = new QHBoxLayout;
     lo->addWidget( add );
