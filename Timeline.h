@@ -2,8 +2,10 @@
 #define TIMELINE_H
 
 #include <QWidget>
+#include <QPixmap>
 
 class QBoxLayout;
+class QLabel;
 class ColorLabel;
 
 class Timeline : public QWidget
@@ -20,6 +22,7 @@ public:
     void advance( int sec );
     int  startTime() const { return _startTime; }
     void setStartTime( int sec );
+    void setTurnDuration( int sec );
 public slots:
     void deleteLastAction();
 protected:
@@ -33,11 +36,15 @@ protected:
 private:
     QBoxLayout* selectedLayout();
     ColorLabel* selectedNameLabel();
+    void makeTimeScale(int);
     Timeline(const Timeline&);
 
+    QPixmap _timeScale;
+    QLabel* _scale;
     QBoxLayout* _lo;
     int _pixPerSec;     // Pixels per second scale.
     int _startTime;     // Time at left side of timeline.
+    int _turnDur;
     int _subject;       // Selected subject index.
 };
 
@@ -55,6 +62,7 @@ public slots:
     void newSubject();
     void subjectUp();
     void subjectDown();
+    void turnDurationChanged(int);
     void addAction(QListWidgetItem*);
     void advance();
     void timeEdited();

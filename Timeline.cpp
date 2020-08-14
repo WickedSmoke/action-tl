@@ -87,6 +87,7 @@ protected:
 
 
 #define SUBJECT_NONE    -1
+#define SUBJECT_WIDTH   120
 #define SUBJECT_HEIGHT(cl)  cl->fontMetrics().height()+6
 
 
@@ -94,6 +95,7 @@ Timeline::Timeline( QWidget* parent ) : QWidget(parent)
 {
     _pixPerSec = 70;
     _startTime = 0;
+    _turnDur = 6;
     _subject = SUBJECT_NONE;
 
     setAcceptDrops(true);
@@ -101,10 +103,36 @@ Timeline::Timeline( QWidget* parent ) : QWidget(parent)
     _lo = new QVBoxLayout(this);
     _lo->setSpacing(0);
 
+
     QAction* act = new QAction( this );
     act->setShortcut( QKeySequence::Delete );
     connect( act, SIGNAL(triggered(bool)), this, SLOT(deleteLastAction()) );
     addAction( act );
+
+    QMargins marg = _lo->contentsMargins();
+    marg.setTop( 10 );
+    _lo->setContentsMargins( marg );
+
+    makeTimeScale( _pixPerSec );
+    _scale = new QLabel( this );
+    _scale->setFrameShape( QFrame::NoFrame );    // Does nothing?
+    _scale->move( marg.left() + SUBJECT_WIDTH, 0 );
+    _scale->setFixedWidth( _pixPerSec * _turnDur );
+    _scale->setPixmap( _timeScale );
+}
+
+
+void Timeline::makeTimeScale( int pixPerSec )
+{
+    QImage img( pixPerSec * 10, 10, QImage::Format_RGB888 );
+    img.fill( Qt::black );
+
+    QPainter p( &img );
+    p.setBrush( Qt::white );
+    int x = 0;
+    for( int i = 0; i < 5; ++i, x += pixPerSec * 2 )
+        p.drawRect( x, 0, pixPerSec-1, img.height() );
+    _timeScale.convertFromImage( img );
 }
 
 
@@ -217,11 +245,18 @@ void Timeline::setStartTime( int sec )
 }
 
 
+void Timeline::setTurnDuration( int sec )
+{
+    _turnDur = sec;
+    _scale->setFixedWidth( _pixPerSec * _turnDur );
+}
+
+
 void Timeline::addSubject( const QString& name, bool sel )
 {
 #if 1
     ColorLabel* cl = new ColorLabel(name);
-    cl->setFixedSize( 120, SUBJECT_HEIGHT(cl) );
+    cl->setFixedSize( SUBJECT_WIDTH, SUBJECT_HEIGHT(cl) );
     cl->setColor( Qt::black );
 
     QBoxLayout* slo = new QHBoxLayout;
@@ -463,6 +498,8 @@ ActionTimeline::ActionTimeline( QWidget* parent ) : QWidget(parent)
     _turn = new QComboBox;
     _turn->addItem( "6 sec" );
     _turn->addItem( "10 sec" );
+    connect( _turn, SIGNAL(currentIndexChanged(int)),
+             SLOT(turnDurationChanged(int)) );
 
     QPushButton* adv = new QPushButton;
     connect( adv, SIGNAL(clicked(bool)), this, SLOT(advance()) );
@@ -522,6 +559,12 @@ void ActionTimeline::subjectUp()
 void ActionTimeline::subjectDown()
 {
     _tl->orderSubject( 1 );
+}
+
+
+void ActionTimeline::turnDurationChanged(int index)
+{
+    _tl->setTurnDuration( index ? 10 : 6 );
 }
 
 
