@@ -19,6 +19,12 @@
 
 #define CSTR(qs)    qs.toLocal8Bit().constData()
 
+enum ColorLabelType
+{
+    CTYPE_NAME,
+    CTYPE_ACTION
+};
+
 #define ACT_COUNT   12
 static const char* actionName[ ACT_COUNT ] = {
     "Walk 10",
@@ -66,6 +72,9 @@ public:
         mpal.setColor( QPalette::Text, col );
         setPalette( mpal );
     }
+
+    short ctype;
+
 protected:
     void paintEvent(QPaintEvent*)
     {
@@ -250,6 +259,7 @@ void Timeline::addSubject( const QString& name, bool sel )
 {
 #if 1
     ColorLabel* cl = new ColorLabel(name);
+    cl->ctype = CTYPE_NAME;
     cl->setFixedSize( SUBJECT_WIDTH, SUBJECT_HEIGHT(cl) );
     cl->setColor( Qt::black );
 
@@ -272,6 +282,7 @@ bool Timeline::appendAction( int id )
     if( slo )
     {
         ColorLabel* cl = new ColorLabel( actionName[id] );
+        cl->ctype = CTYPE_ACTION;
         cl->setFixedSize( _pixPerSec * actionDur[id], SUBJECT_HEIGHT(cl) );
         cl->setColor( Qt::darkGray );
 
@@ -323,21 +334,24 @@ void Timeline::contextMenuEvent(QContextMenuEvent* ev)
     if( wid )
     {
         QMenu menu;
-        QAction* resolv;
+        QAction* resolv = NULL;
+        QAction* resize = NULL;
         QAction* rename;
-        QAction* resize;
         QAction* act;
+        ColorLabel* cl = static_cast<ColorLabel*>( wid );
 
-        resolv = menu.addAction( "Resolve" );
+        if( cl->ctype == CTYPE_ACTION )
+        {
+            resolv = menu.addAction( "Resolve" );
+            resize = menu.addAction( "Set Duration" );
+        }
         rename = menu.addAction( "Rename" );
-        resize = menu.addAction( "Set Duration" );
         menu.addSeparator();
         menu.addAction( "Delete" );
 
         act = menu.exec( ev->globalPos() );
         if( act )
         {
-            ColorLabel* cl = static_cast<ColorLabel*>( wid );
             if( act == resolv )
             {
                 int n = QRandomGenerator::global()->bounded(20) + 1;
@@ -363,10 +377,12 @@ void Timeline::contextMenuEvent(QContextMenuEvent* ev)
                 if( ok )
                     cl->setFixedWidth( int(dur * _pixPerSec) );
             }
-            else
+            else    // delete
             {
-                // TODO: Remove subject row if wid is name.
-                wid->deleteLater();
+                if( cl->ctype == CTYPE_ACTION )
+                    wid->deleteLater();
+                else
+                    deleteSubject( subjectAt( ev->pos() ) );
             }
         }
     }
@@ -384,6 +400,25 @@ int Timeline::subjectAt(const QPoint& pnt) const
             return i;
     }
     return SUBJECT_NONE;
+}
+
+
+void Timeline::deleteSubject( int i )
+{
+    QLayoutItem* item = _lo->takeAt(i);
+    if( item )
+    {
+        QWidget* wid;
+        QLayout* slo = item->layout();
+        int sc = slo->count() - 1;
+        for( int ai = 0; ai < sc; ++ai )
+        {
+            item = slo->itemAt(ai);
+            if( item && (wid = item->widget()) )
+                delete wid;
+        }
+        delete item;
+    }
 }
 
 

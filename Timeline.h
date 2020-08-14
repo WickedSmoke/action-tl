@@ -24,6 +24,7 @@ public:
     void setStartTime( int sec );
     void setTurnDuration( int sec );
 public slots:
+    void deleteSubject(int);
     void deleteLastAction();
 protected:
     void dragEnterEvent(QDragEnterEvent*);
