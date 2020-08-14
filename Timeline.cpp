@@ -3,6 +3,7 @@
 #include <string.h>
 #include <QApplication>
 #include <QBoxLayout>
+#include <QComboBox>
 #include <QPushButton>
 #include <QDropEvent>
 #include <QDoubleSpinBox>
@@ -385,12 +386,22 @@ ActionTimeline::ActionTimeline( QWidget* parent ) : QWidget(parent)
     QPushButton* add = new QPushButton("+");
     connect( add, SIGNAL(clicked(bool)), this, SLOT(newSubject()) );
 
+    _turn = new QComboBox;
+    _turn->addItem( "6 sec" );
+    _turn->addItem( "10 sec" );
+
     QPushButton* adv = new QPushButton(">>");
     connect( adv, SIGNAL(clicked(bool)), this, SLOT(advance()) );
 
+    _time = new QLabel( "0" );
+    _time->setFixedHeight( _turn->sizeHint().height() );
+
     QBoxLayout* lo = new QHBoxLayout;
     lo->addWidget( add );
+    lo->addSpacing( 20 );
+    lo->addWidget( _turn );
     lo->addWidget( adv );
+    lo->addWidget( _time );
     lo->addStretch();
 
     QGridLayout* grid = new QGridLayout(this);
@@ -420,7 +431,8 @@ void ActionTimeline::newSubject()
 void ActionTimeline::advance()
 {
     _tl->saveImage();
-    _tl->advance( 10 );
+    _tl->advance( _turn->currentIndex() ? 10 : 6 );
+    _time->setText( QString::number( _tl->startTime() ) );
 }
 
 

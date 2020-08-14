@@ -15,6 +15,7 @@ public:
     void select(int);
     void saveImage();
     void advance( int sec );
+    int  startTime() const { return _startTime; }
 protected:
     void dragEnterEvent(QDragEnterEvent*);
     void dropEvent(QDropEvent*);
@@ -31,6 +32,9 @@ private:
     int _subject;       // Selected subject index.
 };
 
+class QComboBox;
+class QLabel;
+
 class ActionTimeline : public QWidget
 {
     Q_OBJECT
@@ -44,6 +48,8 @@ private:
     ActionTimeline(const Timeline&);
 
     Timeline* _tl;
+    QComboBox* _turn;
+    QLabel* _time;
 };
 
 #endif //TIMELINE_H
