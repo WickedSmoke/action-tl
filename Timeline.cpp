@@ -193,6 +193,12 @@ void Timeline::advance( int sec )
 }
 
 
+void Timeline::setStartTime( int sec )
+{
+    _startTime = sec;
+}
+
+
 void Timeline::addSubject( const QString& name )
 {
 #if 1
@@ -407,8 +413,11 @@ ActionTimeline::ActionTimeline( QWidget* parent ) : QWidget(parent)
     QPushButton* adv = new QPushButton(">>");
     connect( adv, SIGNAL(clicked(bool)), this, SLOT(advance()) );
 
-    _time = new QLabel( "0" );
-    _time->setFixedHeight( _turn->sizeHint().height() );
+    _time = new QLineEdit( "0" );
+    _time->setFixedSize( 60, _turn->sizeHint().height() );
+    _time->setValidator( new QIntValidator(0, 999, this) );
+    connect( _time, SIGNAL(textEdited(const QString&)),
+             this, SLOT(timeEdited()) );
 
     QBoxLayout* lo = new QHBoxLayout;
     lo->addWidget( add );
@@ -447,6 +456,12 @@ void ActionTimeline::advance()
     _tl->saveImage();
     _tl->advance( _turn->currentIndex() ? 10 : 6 );
     _time->setText( QString::number( _tl->startTime() ) );
+}
+
+
+void ActionTimeline::timeEdited()
+{
+    _tl->setStartTime( _time->text().toInt() );
 }
 
 

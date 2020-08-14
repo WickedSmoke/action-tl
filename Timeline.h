@@ -16,6 +16,7 @@ public:
     void saveImage();
     void advance( int sec );
     int  startTime() const { return _startTime; }
+    void setStartTime( int sec );
 protected:
     void dragEnterEvent(QDragEnterEvent*);
     void dragMoveEvent(QDragMoveEvent*);
@@ -35,7 +36,7 @@ private:
 };
 
 class QComboBox;
-class QLabel;
+class QLineEdit;
 
 class ActionTimeline : public QWidget
 {
@@ -46,12 +47,13 @@ public:
 public slots:
     void newSubject();
     void advance();
+    void timeEdited();
 private:
     ActionTimeline(const Timeline&);
 
     Timeline* _tl;
     QComboBox* _turn;
-    QLabel* _time;
+    QLineEdit* _time;
 };
 
 #endif //TIMELINE_H
