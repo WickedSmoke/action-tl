@@ -10,7 +10,7 @@ class Timeline : public QWidget
 {
 public:
     Timeline( QWidget* parent = NULL );
-    void addSubject( const QString& name );
+    void addSubject( const QString& name, bool sel = true );
     void orderSubject( int dir );
     bool hasSelection() const { return _subject >= 0; }
     void select(int);

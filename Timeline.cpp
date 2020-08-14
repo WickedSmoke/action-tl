@@ -200,7 +200,7 @@ void Timeline::setStartTime( int sec )
 }
 
 
-void Timeline::addSubject( const QString& name )
+void Timeline::addSubject( const QString& name, bool sel )
 {
 #if 1
     ColorLabel* cl = new ColorLabel(name);
@@ -214,6 +214,9 @@ void Timeline::addSubject( const QString& name )
 #else
     _lo->addWidget( new QLabel(name) );
 #endif
+
+    if( sel )
+        select( _lo->count() - 1 );
 }
 
 
@@ -471,7 +474,7 @@ void ActionTimeline::loadSubjects( int count, char** names )
     if( count > 0 )
     {
         for( int i = 0; i < count; ++i )
-            _tl->addSubject( names[i] );
+            _tl->addSubject( names[i], false );
         _tl->select( 0 );
     }
 }
@@ -480,6 +483,7 @@ void ActionTimeline::loadSubjects( int count, char** names )
 void ActionTimeline::newSubject()
 {
     _tl->addSubject( "<unnamed>" );
+    // TODO: Open Rename dialog.
 }
 
 
