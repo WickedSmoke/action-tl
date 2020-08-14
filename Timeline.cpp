@@ -100,6 +100,11 @@ Timeline::Timeline( QWidget* parent ) : QWidget(parent)
     setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Minimum );
     _lo = new QVBoxLayout(this);
     _lo->setSpacing(0);
+
+    QAction* act = new QAction( this );
+    act->setShortcut( QKeySequence::Delete );
+    connect( act, SIGNAL(triggered(bool)), this, SLOT(deleteLastAction()) );
+    addAction( act );
 }
 
 
@@ -119,19 +124,31 @@ void Timeline::select( int index )
 }
 
 
-ColorLabel* Timeline::selectedNameLabel()
+/*
+  Return layout of selected subject row or NULL if none is selected.
+*/
+QBoxLayout* Timeline::selectedLayout()
 {
     if( hasSelection() )
     {
-        ColorLabel* cl;
-        QLayout* slo;
+        QBoxLayout* slo;
         QLayoutItem* item = _lo->itemAt( _subject );
-        if( item && (slo = item->layout()) )
-        {
-            item = slo->itemAt( 0 );
-            if( item && (cl = static_cast<ColorLabel*>(item->widget())) )
-                return cl;
-        }
+        if( item && (slo = static_cast<QBoxLayout*>(item->layout())) )
+            return slo;
+    }
+    return NULL;
+}
+
+
+ColorLabel* Timeline::selectedNameLabel()
+{
+    QLayout* slo = selectedLayout();
+    if( slo )
+    {
+        ColorLabel* cl;
+        QLayoutItem* item = slo->itemAt( 0 );
+        if( item && (cl = static_cast<ColorLabel*>(item->widget())) )
+            return cl;
     }
     return NULL;
 }
@@ -222,20 +239,16 @@ void Timeline::addSubject( const QString& name, bool sel )
 
 bool Timeline::appendAction( int id )
 {
-    if( hasSelection() )
+    QBoxLayout* slo = selectedLayout();
+    if( slo )
     {
-        QBoxLayout* slo;
-        QLayoutItem* item = _lo->itemAt( _subject );
-        if( item && (slo = static_cast<QBoxLayout*>(item->layout())) )
-        {
-            ColorLabel* cl = new ColorLabel( actionName[id] );
-            cl->setFixedSize( _pixPerSec * actionDur[id] - 1,
-                              SUBJECT_HEIGHT(cl) );
-            cl->setColor( Qt::darkGray );
+        ColorLabel* cl = new ColorLabel( actionName[id] );
+        cl->setFixedSize( _pixPerSec * actionDur[id] - 1,
+                          SUBJECT_HEIGHT(cl) );
+        cl->setColor( Qt::darkGray );
 
-            slo->insertWidget( slo->count() - 1, cl );
-            return true;
-        }
+        slo->insertWidget( slo->count() - 1, cl );
+        return true;
     }
     return false;
 }
@@ -343,6 +356,19 @@ int Timeline::subjectAt(const QPoint& pnt) const
             return i;
     }
     return SUBJECT_NONE;
+}
+
+
+void Timeline::deleteLastAction()
+{
+    QBoxLayout* slo = selectedLayout();
+    if( slo && slo->count() > 2 )
+    {
+        QWidget* wid;
+        QLayoutItem* item = slo->itemAt( slo->count() - 2 );
+        if( item && (wid = item->widget()) )
+            wid->deleteLater();
+    }
 }
 
 

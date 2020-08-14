@@ -8,6 +8,7 @@ class ColorLabel;
 
 class Timeline : public QWidget
 {
+    Q_OBJECT
 public:
     Timeline( QWidget* parent = NULL );
     void addSubject( const QString& name, bool sel = true );
@@ -19,6 +20,8 @@ public:
     void advance( int sec );
     int  startTime() const { return _startTime; }
     void setStartTime( int sec );
+public slots:
+    void deleteLastAction();
 protected:
     void dragEnterEvent(QDragEnterEvent*);
     void dragMoveEvent(QDragMoveEvent*);
@@ -28,6 +31,7 @@ protected:
     void wheelEvent(QWheelEvent*);
     int  subjectAt(const QPoint& pnt) const;
 private:
+    QBoxLayout* selectedLayout();
     ColorLabel* selectedNameLabel();
     Timeline(const Timeline&);
 
