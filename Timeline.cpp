@@ -87,11 +87,13 @@ protected:
 //----------------------------------------------------------------------------
 
 
+#define SUBJECT_NONE    -1
+
 Timeline::Timeline( QWidget* parent ) : QWidget(parent)
 {
     _pixPerSec = 70;
     _startTime = 0;
-    _subject = -1;
+    _subject = SUBJECT_NONE;
 
     setAcceptDrops(true);
     setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Minimum );
@@ -216,11 +218,18 @@ void Timeline::dragEnterEvent(QDragEnterEvent* ev)
         printf( "fmt %s\n", CSTR(fmt.at(i)) );
 #endif
 
-    if( hasSelection() &&
-        ev->mimeData()->hasFormat("application/x-qabstractitemmodeldatalist") )
-    {
+    if( ev->mimeData()->hasFormat("application/x-qabstractitemmodeldatalist") )
          ev->acceptProposedAction();
-    }
+}
+
+
+void Timeline::dragMoveEvent(QDragMoveEvent* ev)
+{
+    int n = subjectAt( ev->pos() );
+    if( n != SUBJECT_NONE )
+        select(n);
+    if( hasSelection() )
+        ev->acceptProposedAction();
 }
 
 
@@ -305,20 +314,25 @@ void Timeline::contextMenuEvent(QContextMenuEvent* ev)
 }
 
 
-void Timeline::mousePressEvent(QMouseEvent* ev)
+int Timeline::subjectAt(const QPoint& pnt) const
 {
-    QPoint pnt( ev->pos() );
     QLayoutItem* item;
     int count = _lo->count();
     for( int i = 0; i < count; ++i )
     {
         item = _lo->itemAt(i);
         if( item->geometry().contains( pnt ) )
-        {
-            select(i);
-            return;
-        }
+            return i;
     }
+    return SUBJECT_NONE;
+}
+
+
+void Timeline::mousePressEvent(QMouseEvent* ev)
+{
+    int n = subjectAt( ev->pos() );
+    if( n != SUBJECT_NONE )
+        select(n);
 }
 
 

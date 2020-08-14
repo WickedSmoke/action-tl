@@ -18,10 +18,12 @@ public:
     int  startTime() const { return _startTime; }
 protected:
     void dragEnterEvent(QDragEnterEvent*);
+    void dragMoveEvent(QDragMoveEvent*);
     void dropEvent(QDropEvent*);
     void contextMenuEvent(QContextMenuEvent*);
     void mousePressEvent(QMouseEvent*);
     void wheelEvent(QWheelEvent*);
+    int  subjectAt(const QPoint& pnt) const;
 private:
     ColorLabel* selectedNameLabel();
     Timeline(const Timeline&);
