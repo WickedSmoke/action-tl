@@ -388,14 +388,6 @@ ActionTimeline::ActionTimeline( QWidget* parent ) : QWidget(parent)
     QPushButton* adv = new QPushButton(">>");
     connect( adv, SIGNAL(clicked(bool)), this, SLOT(advance()) );
 
-    QLabel* label = new QLabel("Scale:");
-    label->setAlignment( Qt::AlignRight );
-
-    QDoubleSpinBox* spin = new QDoubleSpinBox;
-    spin->setRange( 0.1, 5.0 );
-    spin->setSingleStep( 0.1 );
-    spin->setValue( 1.0 );
-
     QBoxLayout* lo = new QHBoxLayout;
     lo->addWidget( add );
     lo->addWidget( adv );
@@ -403,10 +395,8 @@ ActionTimeline::ActionTimeline( QWidget* parent ) : QWidget(parent)
 
     QGridLayout* grid = new QGridLayout(this);
     grid->addWidget( _tl,   0, 0 );
-    grid->addWidget( list,  0, 1, 1, 2 );
+    grid->addWidget( list,  0, 1, 2, 2 );
     grid->addLayout( lo,    1, 0 );
-    grid->addWidget( label, 1, 1 );
-    grid->addWidget( spin,  1, 2 );
 }
 
 
