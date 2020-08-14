@@ -88,6 +88,8 @@ protected:
 
 
 #define SUBJECT_NONE    -1
+#define SUBJECT_HEIGHT(cl)  cl->fontMetrics().height()+6
+
 
 Timeline::Timeline( QWidget* parent ) : QWidget(parent)
 {
@@ -203,7 +205,7 @@ void Timeline::addSubject( const QString& name )
 {
 #if 1
     ColorLabel* cl = new ColorLabel(name);
-    cl->setFixedSize( 120, 20 );
+    cl->setFixedSize( 120, SUBJECT_HEIGHT(cl) );
     cl->setColor( Qt::black );
 
     QBoxLayout* slo = new QHBoxLayout;
@@ -249,7 +251,7 @@ void Timeline::dropEvent(QDropEvent* ev)
     int duration = actionDur[ actionId(CSTR(name)) ];
 
     ColorLabel* cl = new ColorLabel( name );
-    cl->setFixedSize( _pixPerSec * duration - 1, 20 );
+    cl->setFixedSize( _pixPerSec * duration - 1, SUBJECT_HEIGHT(cl) );
     cl->setColor( Qt::darkGray );
 
     assert( hasSelection() );
