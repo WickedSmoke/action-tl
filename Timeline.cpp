@@ -351,35 +351,41 @@ void Timeline::mousePressEvent(QMouseEvent* ev)
 }
 
 
-void Timeline::wheelEvent(QWheelEvent* ev)
+void Timeline::orderSubject( int dir )
 {
     int count = _lo->count();
+    if( count > 1 && hasSelection() )
+    {
+        int n;
+        if( dir < 0 )
+        {
+            n = (_subject > 0) ? _subject-1 : count-1;
+        }
+        else
+        {
+            n = _subject+1;
+            if( n == count )
+                n = 0;
+        }
 
+        QLayoutItem* item = _lo->takeAt( _subject );
+        _lo->insertItem( n, item );
+        _subject = n;   // No need to call select().
+    }
+}
+
+
+void Timeline::wheelEvent(QWheelEvent* ev)
+{
     if( ev->modifiers() & Qt::ShiftModifier )
     {
-        if( count > 1 && hasSelection() )
-        {
-            int n;
-            if( ev->angleDelta().y() > 0 )
-            {
-                n = (_subject > 0) ? _subject-1 : count-1;
-            }
-            else
-            {
-                n = _subject+1;
-                if( n == count )
-                    n = 0;
-            }
-
-            QLayoutItem* item = _lo->takeAt( _subject );
-            _lo->insertItem( n, item );
-            _subject = n;   // No need to call select().
-        }
+        orderSubject( (ev->angleDelta().y() > 0) ? -1 : 1 );
     }
-    else if( count )
+    else
     {
         int n = 0;
-        if( hasSelection() )
+        int count = _lo->count();
+        if( count && hasSelection() )
         {
             if( ev->angleDelta().y() > 0 )
             {
@@ -419,6 +425,12 @@ ActionTimeline::ActionTimeline( QWidget* parent ) : QWidget(parent)
     QPushButton* add = new QPushButton("+");
     connect( add, SIGNAL(clicked(bool)), this, SLOT(newSubject()) );
 
+    QPushButton* up = new QPushButton("Up");
+    connect( up, SIGNAL(clicked(bool)), this, SLOT(subjectUp()) );
+
+    QPushButton* down = new QPushButton("Down");
+    connect( down, SIGNAL(clicked(bool)), this, SLOT(subjectDown()) );
+
     _turn = new QComboBox;
     _turn->addItem( "6 sec" );
     _turn->addItem( "10 sec" );
@@ -434,7 +446,9 @@ ActionTimeline::ActionTimeline( QWidget* parent ) : QWidget(parent)
 
     QBoxLayout* lo = new QHBoxLayout;
     lo->addWidget( add );
-    lo->addSpacing( 20 );
+    lo->addWidget( up );
+    lo->addWidget( down );
+    lo->addSpacing( 32 );
     lo->addWidget( _turn );
     lo->addWidget( adv );
     lo->addWidget( _time );
@@ -461,6 +475,18 @@ void ActionTimeline::loadSubjects( int count, char** names )
 void ActionTimeline::newSubject()
 {
     _tl->addSubject( "<unnamed>" );
+}
+
+
+void ActionTimeline::subjectUp()
+{
+    _tl->orderSubject( -1 );
+}
+
+
+void ActionTimeline::subjectDown()
+{
+    _tl->orderSubject( 1 );
 }
 
 

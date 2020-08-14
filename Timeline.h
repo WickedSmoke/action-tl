@@ -11,6 +11,7 @@ class Timeline : public QWidget
 public:
     Timeline( QWidget* parent = NULL );
     void addSubject( const QString& name );
+    void orderSubject( int dir );
     bool hasSelection() const { return _subject >= 0; }
     void select(int);
     bool appendAction(int);
@@ -48,6 +49,8 @@ public:
     void loadSubjects( int count, char** names );
 public slots:
     void newSubject();
+    void subjectUp();
+    void subjectDown();
     void addAction(QListWidgetItem*);
     void advance();
     void timeEdited();
