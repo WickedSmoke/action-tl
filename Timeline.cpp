@@ -21,8 +21,8 @@
 
 #define ACT_COUNT   12
 static const char* actionName[ ACT_COUNT ] = {
-    "Walk",
-    "Run",
+    "Walk 10",
+    "Run 10",
     "Attack",
     "Defend",
 
@@ -38,7 +38,7 @@ static const char* actionName[ ACT_COUNT ] = {
 };
 
 static const int actionDur[ ACT_COUNT ] = {
-    2, 2, 5, 4,   5, 5, 1, 6,   3, 3, 1, 2
+    3, 1, 5, 4,   5, 5, 1, 6,   3, 3, 1, 2
 };
 
 
