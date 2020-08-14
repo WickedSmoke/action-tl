@@ -210,25 +210,19 @@ void Timeline::advance( int sec )
         if( item && (slo = item->layout()) )
         {
             rem = pdur;
-            sc = slo->count();
+            sc = slo->count() - 1;
             for( int ai = 1; ai < sc; ++ai )
             {
                 item = slo->itemAt(ai);
-                wid = item->widget();
-
                 w = item->geometry().width();
-                if( rem < w )
+                if( (wid = item->widget()) )
                 {
-                    if( wid )
+                    if( rem < w )
                         wid->setFixedWidth( w - rem );
-                }
-                else
-                {
-                    rem -= w + 1;
-                    if( wid )
+                    else
                         wid->deleteLater();
                 }
-
+                rem -= w;
                 if( rem < 1 )
                     break;
             }
@@ -278,8 +272,7 @@ bool Timeline::appendAction( int id )
     if( slo )
     {
         ColorLabel* cl = new ColorLabel( actionName[id] );
-        cl->setFixedSize( _pixPerSec * actionDur[id] - 1,
-                          SUBJECT_HEIGHT(cl) );
+        cl->setFixedSize( _pixPerSec * actionDur[id], SUBJECT_HEIGHT(cl) );
         cl->setColor( Qt::darkGray );
 
         slo->insertWidget( slo->count() - 1, cl );
@@ -368,7 +361,7 @@ void Timeline::contextMenuEvent(QContextMenuEvent* ev)
                         double(cl->width()) / double(_pixPerSec), 0.1, 9.0,
                         1, &ok );
                 if( ok )
-                    cl->setFixedWidth( int(dur * _pixPerSec) - 1 );
+                    cl->setFixedWidth( int(dur * _pixPerSec) );
             }
             else
             {
