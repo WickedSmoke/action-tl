@@ -13,7 +13,6 @@
 #include <QMenu>
 #include <QMimeData>
 #include <QPainter>
-#include <QRandomGenerator>
 #include <QStandardItemModel>
 #include "Timeline.h"
 
@@ -697,7 +696,13 @@ void ActionTimeline::timeEdited()
 }
 
 
+#if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
+#define DICE_ROLL(n)    (qrand() % n + 1)
+#else
+#include <QRandomGenerator>
 #define DICE_ROLL(n)    (QRandomGenerator::global()->bounded(n) + 1)
+#endif
+
 #include "evalDice.c"
 
 
@@ -723,6 +728,10 @@ void ActionTimeline::rollDiceLast()
 int main( int argc, char** argv )
 {
     QApplication app( argc, argv );
+
+#if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
+    qsrand( time(NULL) );
+#endif
 
     QIcon icon;
     icon.addFile( ":/icon/app-32.png", QSize(32,32) );
