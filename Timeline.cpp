@@ -461,6 +461,16 @@ void Timeline::orderSubject( int dir )
         }
 
         QLayoutItem* item = _lo->takeAt( _subject );
+
+        // With Qt 5.12.5 takeAt() sets the item layout parent to 0, but
+        // insertItem() below does not set it again.  If the parent is not set
+        // again here then no further widgets can be added to the subject
+        // layout and the item->geometry() will be 0,0,0,0.
+
+        QLayout* slo = item->layout();
+        if( ! slo->parent() )
+            slo->setParent( _lo );
+
         _lo->insertItem( n, item );
         _subject = n;   // No need to call select().
     }
