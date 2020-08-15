@@ -18,6 +18,8 @@
 #include "Timeline.h"
 
 #define CSTR(qs)    qs.toLocal8Bit().constData()
+#define RGB_RESOLVE qRgb(238, 232, 205)
+#define RGB_SELECT  qRgb(135, 206, 235)
 
 enum ColorLabelType
 {
@@ -64,7 +66,7 @@ class ColorLabel : public QLabel
 {
 public:
     ColorLabel( const QString& text, QWidget* parent = NULL )
-        : QLabel(text, parent) {}
+        : QLabel(text, parent), fill(false) {}
 
     void setColor( const QColor& col )
     {
@@ -73,7 +75,20 @@ public:
         setPalette( mpal );
     }
 
+    void setBase( const QColor& col )
+    {
+        QPalette mpal( palette() );
+        mpal.setColor( QPalette::Base, col );
+        setPalette( mpal );
+        fill = true;
+    }
+
+    void clearBase() {
+        fill = false;
+    }
+
     short ctype;
+    bool  fill;
 
 protected:
     void paintEvent(QPaintEvent*)
@@ -81,11 +96,18 @@ protected:
         QPainter p(this);
         QFontMetrics fm( fontMetrics() );
         QColor pcol = palette().color( QPalette::Text );
+        QBrush br;
         int h = height();
         int pad = (h - fm.height()) / 2;
 
+        if( fill )
+        {
+            br.setStyle( Qt::SolidPattern );
+            br.setColor( palette().color( QPalette::Base ) );
+        }
+
         p.setPen( pcol );
-        p.setBrush( QBrush() );
+        p.setBrush( br );
         p.drawRect( 0, 0, width()-1, h-1 );
         p.drawText( 4, h - fm.descent() - pad, text() );
     }
@@ -151,12 +173,18 @@ void Timeline::select( int index )
     {
         ColorLabel* cl;
         if( (cl = selectedNameLabel()) )
+        {
             cl->setColor( Qt::black );
+            cl->clearBase();
+        }
 
         _subject = index;
 
         if( (cl = selectedNameLabel()) )
-            cl->setColor( Qt::darkYellow );
+        {
+            cl->setColor( Qt::white );
+            cl->setBase( QColor(RGB_SELECT) );
+        }
     }
 }
 
@@ -366,6 +394,7 @@ void Timeline::contextMenuEvent(QContextMenuEvent* ev)
                 text.append( ' ' );
                 text.append( QChar(0x2713) );
                 cl->setText( text );
+                cl->setBase( QColor(RGB_RESOLVE) );
             }
             else if( act == rename )
             {
@@ -679,6 +708,7 @@ void ActionTimeline::rollDice( ColorLabel* cl )
         QString text( cl->text() );
         text.append( " %1" );
         cl->setText( text.arg(n) );
+        cl->setBase( QColor(RGB_RESOLVE) );
     }
 }
 
