@@ -1,9 +1,13 @@
+options [
+    -debug:   false         "Compile for debugging"
+]
+
 rule %icons.cpp %icons.qrc {
-    rcc-qt5 icons.qrc -o icons.cpp
+    $(RCC) icons.qrc -o icons.cpp
 }
 
 exe %action-tl [
-    debug
+    either -debug [debug] [release]
     objdir %obj
     cxxflags "-Wno-deprecated-copy"     ; C++11 bullshit
     qt [widgets]
