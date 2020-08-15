@@ -1,0 +1,41 @@
+#!/usr/bin/bash
+# Run "make dist" to build project.tar.gz.
+# Note that moc_Timeline.cpp currently gets included in the archive which is
+# removed below so that the build completes OK.
+
+TIME=$(date +%H%M%S)
+SCRIPT=build-$TIME
+ID=${SCRIPT}
+HDIR=/tmp
+CDIR=/tmp
+
+if [ "$1" == "win" ]; then
+	echo '
+  tar xf /tmp/project.tar.gz
+  cd project
+  rm moc_Timeline.cpp
+  m2; make
+' >$HDIR/${SCRIPT}
+
+	podman run -d -it --name=$ID dev/f31-mingw:1.1 /bin/bash || exit
+	podman cp project.tar.gz $ID:$CDIR
+	podman cp $HDIR/${SCRIPT} $ID:$CDIR/${SCRIPT}
+	podman exec -it $ID /bin/bash $CDIR/${SCRIPT}
+	podman cp $ID:/home/build/project/action-tl.exe /tmp/action-tl.exe-$TIME
+else
+	echo '
+  tar xf /tmp/project.tar.gz
+  cd project
+  rm moc_Timeline.cpp
+  m2; make
+' >$HDIR/${SCRIPT}
+
+	podman run -d -it --name=$ID dev/centos7:latest /bin/bash || exit
+	podman cp project.tar.gz $ID:$CDIR
+	podman cp $HDIR/${SCRIPT} $ID:$CDIR/${SCRIPT}
+	podman exec -it $ID /bin/bash $CDIR/${SCRIPT}
+	podman cp $ID:/home/build/project/action-tl /tmp/action-tl-$TIME
+fi
+
+echo "$SCRIPT done!"
+podman stop $ID
