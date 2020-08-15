@@ -1,5 +1,10 @@
 <RCC>
-<qresource prefix="icons">
-<file alias="d20.png">art/metal_d20.png</file>
+<qresource prefix="icon">
+<file alias="d20-32.png">art/metal_d20-32.png</file>
+<file alias="d20-24.png">art/metal_d20-24.png</file>
+<file alias="d20-16.png">art/metal_d20-16.png</file>
+<file alias="app-32.png">art/app_icon-32.png</file>
+<file alias="app-24.png">art/app_icon-24.png</file>
+<file alias="app-16.png">art/app_icon-16.png</file>
 </qresource>
 </RCC>

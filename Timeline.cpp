@@ -573,7 +573,13 @@ ActionTimeline::ActionTimeline( QWidget* parent ) : QWidget(parent)
              this, SLOT(timeEdited()) );
 
     QPushButton* roll = new QPushButton;
-    roll->setIcon( QApplication::windowIcon() );
+    {
+    QIcon icon;
+    icon.addFile( ":/icon/d20-32.png", QSize(32,32) );
+    icon.addFile( ":/icon/d20-24.png", QSize(24,24) );
+    icon.addFile( ":/icon/d20-16.png", QSize(16,16) );
+    roll->setIcon( icon );
+    }
     connect( roll, SIGNAL(clicked(bool)), SLOT(rollDice()) );
 
     _dice = new QComboBox;
@@ -683,7 +689,12 @@ void ActionTimeline::rollDice()
 int main( int argc, char** argv )
 {
     QApplication app( argc, argv );
-    app.setWindowIcon( QIcon(":/icons/d20.png") );
+
+    QIcon icon;
+    icon.addFile( ":/icon/app-32.png", QSize(32,32) );
+    icon.addFile( ":/icon/app-24.png", QSize(24,24) );
+    icon.addFile( ":/icon/app-16.png", QSize(16,16) );
+    app.setWindowIcon( icon );
 
     ActionTimeline win;
     win.resize( 980, 350 );
