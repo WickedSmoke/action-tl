@@ -358,10 +358,7 @@ void Timeline::contextMenuEvent(QContextMenuEvent* ev)
         {
             if( act == resolv )
             {
-                int n = QRandomGenerator::global()->bounded(20) + 1;
-                QString text( cl->text() );
-                text.append( " %1" );
-                cl->setText( text.arg(n) );
+                emit resolve(cl);
             }
             else if( act == done )
             {
@@ -536,6 +533,7 @@ ActionTimeline::ActionTimeline( QWidget* parent ) : QWidget(parent)
     setWindowTitle( "Action Timeline" );
 
     _tl = new Timeline;
+    connect( _tl, SIGNAL(resolve(ColorLabel*)), SLOT(rollDice(ColorLabel*)) );
 
     QListWidget* list = new QListWidget;
     list->setDragEnabled(true);
@@ -580,7 +578,7 @@ ActionTimeline::ActionTimeline( QWidget* parent ) : QWidget(parent)
     icon.addFile( ":/icon/d20-16.png", QSize(16,16) );
     roll->setIcon( icon );
     }
-    connect( roll, SIGNAL(clicked(bool)), SLOT(rollDice()) );
+    connect( roll, SIGNAL(clicked(bool)), SLOT(rollDiceLast()) );
 
     _dice = new QComboBox;
     _dice->setEditable( true );
@@ -673,9 +671,8 @@ void ActionTimeline::timeEdited()
 #include "evalDice.c"
 
 
-void ActionTimeline::rollDice()
+void ActionTimeline::rollDice( ColorLabel* cl )
 {
-    ColorLabel* cl = _tl->lastAction();
     if( cl )
     {
         int n = evalDice( CSTR(_dice->currentText()) );
@@ -683,6 +680,12 @@ void ActionTimeline::rollDice()
         text.append( " %1" );
         cl->setText( text.arg(n) );
     }
+}
+
+
+void ActionTimeline::rollDiceLast()
+{
+    rollDice( _tl->lastAction() );
 }
 
 

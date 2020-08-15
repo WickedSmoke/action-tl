@@ -24,6 +24,8 @@ public:
     void setStartTime( int sec );
     void setTurnDuration( int sec );
     ColorLabel* lastAction();
+signals:
+    void resolve(ColorLabel*);
 public slots:
     void deleteSubject(int);
     void deleteLastAction();
@@ -68,7 +70,8 @@ public slots:
     void addAction(QListWidgetItem*);
     void advance();
     void timeEdited();
-    void rollDice();
+    void rollDice(ColorLabel*);
+    void rollDiceLast();
 private:
     ActionTimeline(const Timeline&);
 
