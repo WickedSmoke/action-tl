@@ -337,6 +337,7 @@ void Timeline::contextMenuEvent(QContextMenuEvent* ev)
     {
         QMenu menu;
         QAction* resolv = NULL;
+        QAction* done   = NULL;
         QAction* resize = NULL;
         QAction* rename;
         QAction* act;
@@ -345,6 +346,7 @@ void Timeline::contextMenuEvent(QContextMenuEvent* ev)
         if( cl->ctype == CTYPE_ACTION )
         {
             resolv = menu.addAction( "Resolve" );
+            done   = menu.addAction( "Mark Done" );
             resize = menu.addAction( "Set Duration" );
         }
         rename = menu.addAction( "Rename" );
@@ -360,6 +362,13 @@ void Timeline::contextMenuEvent(QContextMenuEvent* ev)
                 QString text( cl->text() );
                 text.append( " %1" );
                 cl->setText( text.arg(n) );
+            }
+            else if( act == done )
+            {
+                QString text( cl->text() );
+                text.append( ' ' );
+                text.append( QChar(0x2713) );
+                cl->setText( text );
             }
             else if( act == rename )
             {
