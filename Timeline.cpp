@@ -631,6 +631,8 @@ void ActionTimeline::timeEdited()
 int main( int argc, char** argv )
 {
     QApplication app( argc, argv );
+    app.setWindowIcon( QIcon(":/icons/d20.png") );
+
     ActionTimeline win;
     win.resize( 980, 350 );
     win.show();
