@@ -575,7 +575,8 @@ ActionTimeline::ActionTimeline( QWidget* parent ) : QWidget(parent)
     connect( list, SIGNAL(itemActivated(QListWidgetItem*)),
              this, SLOT(addAction(QListWidgetItem*)) );
 
-    QPushButton* add = new QPushButton("+");
+    QPushButton* add = new QPushButton;
+    add->setIcon( QIcon(":/icon/new_pc-32.png") );
     connect( add, SIGNAL(clicked(bool)), this, SLOT(newSubject()) );
 
     QPushButton* up = new QPushButton;

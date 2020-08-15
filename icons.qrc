@@ -6,5 +6,6 @@
 <file alias="app-32.png">art/app_icon-32.png</file>
 <file alias="app-24.png">art/app_icon-24.png</file>
 <file alias="app-16.png">art/app_icon-16.png</file>
+<file alias="new_pc-32.png">art/new_pc-32.png</file>
 </qresource>
 </RCC>
