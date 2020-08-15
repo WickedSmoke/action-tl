@@ -193,10 +193,12 @@ ColorLabel* Timeline::selectedNameLabel()
 
 void Timeline::saveImage()
 {
+#ifndef _WIN32
     QString fn( "/tmp/action-%1-%2sec.jpeg" );
     QImage img( size(), QImage::Format_RGB888 );
     render( &img );
     img.save( fn.arg( QCoreApplication::applicationPid() ).arg( _startTime ) );
+#endif
 }
 
 
