@@ -424,7 +424,10 @@ void Timeline::deleteSubject( int i )
 }
 
 
-void Timeline::deleteLastAction()
+/*
+  Return the last action of the selected subject or NULL if there is none.
+*/
+ColorLabel* Timeline::lastAction()
 {
     QBoxLayout* slo = selectedLayout();
     if( slo && slo->count() > 2 )
@@ -432,8 +435,17 @@ void Timeline::deleteLastAction()
         QWidget* wid;
         QLayoutItem* item = slo->itemAt( slo->count() - 2 );
         if( item && (wid = item->widget()) )
-            wid->deleteLater();
+            return static_cast<ColorLabel*>( wid );
     }
+    return NULL;
+}
+
+
+void Timeline::deleteLastAction()
+{
+    ColorLabel* cl = lastAction();
+    if( cl )
+        cl->deleteLater();
 }
 
 
@@ -518,6 +530,7 @@ ActionTimeline::ActionTimeline( QWidget* parent ) : QWidget(parent)
 
     QListWidget* list = new QListWidget;
     list->setDragEnabled(true);
+    list->setMaximumWidth( 180 );
     list->setSizePolicy( QSizePolicy::Maximum, QSizePolicy::Expanding );
     for( int i = 0; i < ACT_COUNT; ++i )
     {
@@ -550,6 +563,16 @@ ActionTimeline::ActionTimeline( QWidget* parent ) : QWidget(parent)
     connect( _time, SIGNAL(textEdited(const QString&)),
              this, SLOT(timeEdited()) );
 
+    QPushButton* roll = new QPushButton;
+    roll->setIcon( QApplication::windowIcon() );
+    connect( roll, SIGNAL(clicked(bool)), SLOT(rollDice()) );
+
+    _dice = new QComboBox;
+    _dice->setEditable( true );
+    _dice->setMinimumWidth( 120 );
+    _dice->addItem( "d20" );
+    _dice->addItem( "d20+d3" );
+
     QStyle* st = QApplication::style();
     up->setIcon  ( st->standardIcon(QStyle::SP_ArrowUp) );
     down->setIcon( st->standardIcon(QStyle::SP_ArrowDown) );
@@ -563,12 +586,15 @@ ActionTimeline::ActionTimeline( QWidget* parent ) : QWidget(parent)
     lo->addWidget( _turn );
     lo->addWidget( adv );
     lo->addWidget( _time );
+    lo->addSpacing( 32 );
+    lo->addWidget( roll );
+    lo->addWidget( _dice );
     lo->addStretch();
 
     QGridLayout* grid = new QGridLayout(this);
-    grid->addWidget( _tl,   0, 0 );
-    grid->addWidget( list,  0, 1, 2, 2 );
-    grid->addLayout( lo,    1, 0 );
+    grid->addWidget( _tl,  0, 0 );
+    grid->addWidget( list, 0, 1, 2, 2 );
+    grid->addLayout( lo,   1, 0 );
 }
 
 
@@ -625,6 +651,23 @@ void ActionTimeline::advance()
 void ActionTimeline::timeEdited()
 {
     _tl->setStartTime( _time->text().toInt() );
+}
+
+
+#define DICE_ROLL(n)    (QRandomGenerator::global()->bounded(n) + 1)
+#include "evalDice.c"
+
+
+void ActionTimeline::rollDice()
+{
+    ColorLabel* cl = _tl->lastAction();
+    if( cl )
+    {
+        int n = evalDice( CSTR(_dice->currentText()) );
+        QString text( cl->text() );
+        text.append( " %1" );
+        cl->setText( text.arg(n) );
+    }
 }
 
 

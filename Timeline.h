@@ -23,6 +23,7 @@ public:
     int  startTime() const { return _startTime; }
     void setStartTime( int sec );
     void setTurnDuration( int sec );
+    ColorLabel* lastAction();
 public slots:
     void deleteSubject(int);
     void deleteLastAction();
@@ -67,12 +68,14 @@ public slots:
     void addAction(QListWidgetItem*);
     void advance();
     void timeEdited();
+    void rollDice();
 private:
     ActionTimeline(const Timeline&);
 
     Timeline* _tl;
     QComboBox* _turn;
     QLineEdit* _time;
+    QComboBox* _dice;
 };
 
 #endif //TIMELINE_H
