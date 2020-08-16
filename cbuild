@@ -22,6 +22,12 @@ if [ "$1" == "win" ]; then
 	podman cp $HDIR/${SCRIPT} $ID:$CDIR/${SCRIPT}
 	podman exec -it $ID /bin/bash $CDIR/${SCRIPT}
 	podman cp $ID:/home/build/project/action-tl.exe /tmp/action-tl.exe-$TIME
+
+	# Build zip archive.
+	FN=`readlink -f arc/mingw-libs.tar.bz2`
+	tar xf $FN -C /tmp
+	cp /tmp/action-tl.exe-$TIME /tmp/action-tl/action-tl.exe
+	cd /tmp; zip -r action-tl.zip action-tl
 else
 	echo '
   tar xf /tmp/project.tar.gz
