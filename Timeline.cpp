@@ -614,6 +614,7 @@ ActionTimeline::ActionTimeline( QWidget* parent ) : QWidget(parent)
     _dice->setMinimumWidth( 120 );
     _dice->addItem( "d20" );
     _dice->addItem( "d20+d3" );
+    _dice->addItem( "3d6" );
 
     QStyle* st = QApplication::style();
     up->setIcon  ( st->standardIcon(QStyle::SP_ArrowUp) );
@@ -706,14 +707,36 @@ void ActionTimeline::timeEdited()
 #include "evalDice.c"
 
 
+static void _emit(void* user, int n)
+{
+    static_cast< QVector<int>* >(user)->push_back( n );
+}
+
+
 void ActionTimeline::rollDice( ColorLabel* cl )
 {
     if( cl )
     {
-        int n = evalDice( CSTR(_dice->currentText()) );
-        QString text( cl->text() );
-        text.append( " %1" );
-        cl->setText( text.arg(n) );
+        QVector<int> buf;
+        int len;
+        int n = evalDice( CSTR(_dice->currentText()), _emit, &buf );
+
+        QString str( cl->text() );
+        if( (len = buf.size()) > 1 )
+        {
+            str.append( " (" );
+            for( int i = 0; i < len; ++i )
+            {
+                if( i )
+                    str.append( ' ' );
+                str.append( QString::number( buf[i] ) );
+            }
+            str.append( ')' );
+        }
+        str.append( ' ' );
+        str.append( QString::number(n) );
+
+        cl->setText( str );
         cl->setBase( QColor(RGB_RESOLVE) );
     }
 }
