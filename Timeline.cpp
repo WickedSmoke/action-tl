@@ -618,6 +618,7 @@ ActionTimeline::ActionTimeline( QWidget* parent ) : QWidget(parent)
     _dice->addItem( "3d6" );
 
     QPushButton* about = new QPushButton( "?" );
+    about->setFixedWidth( roll->sizeHint().width() );
     connect( about, SIGNAL(clicked(bool)), SLOT(showAbout()) );
 
     QStyle* st = QApplication::style();
@@ -768,9 +769,8 @@ void ActionTimeline::rollDiceLast()
 void ActionTimeline::showAbout()
 {
     QString str(
-        "<h2>Action Timeline</h2>\n"
-        "Version 0.6 (%1)\n"
-        "<p>&copy; 2020 Karl Robillard</p>"
+        "<h2>Action Timeline 0.6</h2>\n"
+        "%1, &copy; 2020 Karl Robillard\n"
         "<h4>Key Commands</h4>\n"
         "<table>\n"
         "<tr><td width=\"32\">Del</td><td>Delete last action</td>"
