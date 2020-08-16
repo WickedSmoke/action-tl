@@ -67,13 +67,14 @@ public slots:
     void subjectUp();
     void subjectDown();
     void turnDurationChanged(int);
-    void addAction(QListWidgetItem*);
+    void appendAction(QListWidgetItem*);
     void advance();
     void timeEdited();
     void rollDice(ColorLabel*);
     void rollDiceLast();
     void showAbout();
 private:
+    void defineAction(const QKeySequence&, const char*);
     ActionTimeline(const Timeline&);
 
     Timeline* _tl;

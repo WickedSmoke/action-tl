@@ -573,7 +573,7 @@ ActionTimeline::ActionTimeline( QWidget* parent ) : QWidget(parent)
         new QListWidgetItem( QString(actionName[i]), list, i );
     }
     connect( list, SIGNAL(itemActivated(QListWidgetItem*)),
-             this, SLOT(addAction(QListWidgetItem*)) );
+             this, SLOT(appendAction(QListWidgetItem*)) );
 
     QPushButton* add = new QPushButton;
     add->setIcon( QIcon(":/icon/new_pc-32.png") );
@@ -643,6 +643,18 @@ ActionTimeline::ActionTimeline( QWidget* parent ) : QWidget(parent)
     grid->addWidget( _tl,  0, 0 );
     grid->addWidget( list, 0, 1, 2, 2 );
     grid->addLayout( lo,   1, 0 );
+
+    defineAction( QKeySequence(Qt::Key_F5), SLOT(rollDiceLast()) );
+    defineAction( QKeySequence::Quit,       SLOT(close()) );
+}
+
+
+void ActionTimeline::defineAction( const QKeySequence& key, const char* slot )
+{
+    QAction* act = new QAction( this );
+    act->setShortcut( key );
+    connect( act, SIGNAL(triggered(bool)), slot );
+    addAction( act );
 }
 
 
@@ -682,7 +694,7 @@ void ActionTimeline::turnDurationChanged(int index)
 }
 
 
-void ActionTimeline::addAction(QListWidgetItem* item)
+void ActionTimeline::appendAction(QListWidgetItem* item)
 {
     _tl->appendAction( item->type() );
 }
@@ -755,9 +767,16 @@ void ActionTimeline::rollDiceLast()
 
 void ActionTimeline::showAbout()
 {
-    QString str( "<h2>Action Timeline</h2>\n"
-                 "Version 0.6 (%1)\n"
-                 "<p>&copy; 2020 Karl Robillard</p>" );
+    QString str(
+        "<h2>Action Timeline</h2>\n"
+        "Version 0.6 (%1)\n"
+        "<p>&copy; 2020 Karl Robillard</p>"
+        "<h4>Key Commands</h4>\n"
+        "<table>\n"
+        "<tr><td width=\"32\">Del</td><td>Delete last action</td>"
+        "<tr><td>F5</td> <td>Resolve last action</td>"
+        "</table>\n"
+    );
 
     QMessageBox* about = new QMessageBox(this);
     about->setWindowTitle( "About Action Timeline" );
