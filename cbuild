@@ -17,7 +17,7 @@ if [ "$1" == "win" ]; then
   m2; make
 ' >$HDIR/${SCRIPT}
 
-	podman run -d -it --name=$ID dev/f31-mingw:1.1 /bin/bash || exit
+	podman run -d -it --name=$ID dev/f31-mingw:1.2 /bin/bash || exit
 	podman cp project.tar.gz $ID:$CDIR
 	podman cp $HDIR/${SCRIPT} $ID:$CDIR/${SCRIPT}
 	podman exec -it $ID /bin/bash $CDIR/${SCRIPT}
@@ -30,7 +30,7 @@ else
   m2; make
 ' >$HDIR/${SCRIPT}
 
-	podman run -d -it --name=$ID dev/centos7:latest /bin/bash || exit
+	podman run -d -it --name=$ID dev/centos7:1.0 /bin/bash || exit
 	podman cp project.tar.gz $ID:$CDIR
 	podman cp $HDIR/${SCRIPT} $ID:$CDIR/${SCRIPT}
 	podman exec -it $ID /bin/bash $CDIR/${SCRIPT}
