@@ -645,8 +645,10 @@ ActionTimeline::ActionTimeline( QWidget* parent ) : QWidget(parent)
     grid->addWidget( list, 0, 1, 2, 2 );
     grid->addLayout( lo,   1, 0 );
 
-    defineAction( QKeySequence(Qt::Key_F5), SLOT(rollDiceLast()) );
-    defineAction( QKeySequence::Quit,       SLOT(close()) );
+    defineAction( QKeySequence(Qt::Key_F5),         SLOT(rollDiceLast()) );
+    defineAction( QKeySequence(Qt::CTRL+Qt::Key_T), SLOT(advance()) );
+    defineAction( QKeySequence::HelpContents,       SLOT(showAbout()) );
+    defineAction( QKeySequence::Quit,               SLOT(close()) );
 }
 
 
@@ -773,8 +775,9 @@ void ActionTimeline::showAbout()
         "%1, &copy; 2020 Karl Robillard\n"
         "<h4>Key Commands</h4>\n"
         "<table>\n"
-        "<tr><td width=\"32\">Del</td><td>Delete last action</td>"
+        "<tr><td width=\"64\">Del</td><td>Delete last action</td>"
         "<tr><td>F5</td> <td>Resolve last action</td>"
+        "<tr><td>CTRL+T</td> <td>Advance to next turn</td>"
         "</table>\n"
     );
 
