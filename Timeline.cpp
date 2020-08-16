@@ -11,6 +11,7 @@
 #include <QLabel>
 #include <QListWidget>
 #include <QMenu>
+#include <QMessageBox>
 #include <QMimeData>
 #include <QPainter>
 #include <QStandardItemModel>
@@ -616,6 +617,9 @@ ActionTimeline::ActionTimeline( QWidget* parent ) : QWidget(parent)
     _dice->addItem( "d20+d3" );
     _dice->addItem( "3d6" );
 
+    QPushButton* about = new QPushButton( "?" );
+    connect( about, SIGNAL(clicked(bool)), SLOT(showAbout()) );
+
     QStyle* st = QApplication::style();
     up->setIcon  ( st->standardIcon(QStyle::SP_ArrowUp) );
     down->setIcon( st->standardIcon(QStyle::SP_ArrowDown) );
@@ -633,6 +637,7 @@ ActionTimeline::ActionTimeline( QWidget* parent ) : QWidget(parent)
     lo->addWidget( roll );
     lo->addWidget( _dice );
     lo->addStretch();
+    lo->addWidget( about );
 
     QGridLayout* grid = new QGridLayout(this);
     grid->addWidget( _tl,  0, 0 );
@@ -745,6 +750,21 @@ void ActionTimeline::rollDice( ColorLabel* cl )
 void ActionTimeline::rollDiceLast()
 {
     rollDice( _tl->lastAction() );
+}
+
+
+void ActionTimeline::showAbout()
+{
+    QString str( "<h2>Action Timeline</h2>\n"
+                 "Version 0.6 (%1)\n"
+                 "<p>&copy; 2020 Karl Robillard</p>" );
+
+    QMessageBox* about = new QMessageBox(this);
+    about->setWindowTitle( "About Action Timeline" );
+    about->setIconPixmap( QPixmap(":/icon/app-32.png") );
+    about->setTextFormat( Qt::RichText );
+    about->setText( str.arg( __DATE__ ) );
+    about->show();
 }
 
 

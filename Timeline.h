@@ -72,6 +72,7 @@ public slots:
     void timeEdited();
     void rollDice(ColorLabel*);
     void rollDiceLast();
+    void showAbout();
 private:
     ActionTimeline(const Timeline&);
 
