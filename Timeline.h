@@ -1,8 +1,32 @@
 #ifndef TIMELINE_H
 #define TIMELINE_H
 
+#include <vector>
 #include <QWidget>
 #include <QPixmap>
+
+class ActionTable
+{
+public:
+    int defineAction( const char* aname, const char* end, int dur );
+    int actionId( const char* str ) const;
+    const char* name( int id ) const
+    {
+        return _strings.data() + _entry[ id*2 ];
+    }
+    int duration( int id ) const
+    {
+        return _entry[ id*2 + 1 ];
+    }
+    void setDuration( int id, int dur )
+    {
+        _entry[ id*2 + 1 ] = dur;
+    }
+
+private:
+    std::vector<char> _strings;
+    std::vector<int> _entry;        // Pairs of _strings index & duration.
+};
 
 class QBoxLayout;
 class QLabel;
@@ -12,8 +36,9 @@ class Timeline : public QWidget
 {
     Q_OBJECT
 public:
-    Timeline( QWidget* parent = NULL );
+    Timeline( const ActionTable*, QWidget* parent = NULL );
     void addSubject( const QString& name, bool sel = true );
+    int  subjectCount() const;
     void orderSubject( int dir );
     bool hasSelection() const { return _subject >= 0; }
     void select(int);
@@ -43,6 +68,7 @@ private:
     void makeTimeScale(int);
     Timeline(const Timeline&);
 
+    const ActionTable* _actions;
     QPixmap _timeScale;
     QLabel* _scale;
     QBoxLayout* _lo;
@@ -54,6 +80,7 @@ private:
 
 class QComboBox;
 class QLineEdit;
+class QListWidget;
 class QListWidgetItem;
 
 class ActionTimeline : public QWidget
@@ -61,7 +88,8 @@ class ActionTimeline : public QWidget
     Q_OBJECT
 public:
     ActionTimeline( QWidget* parent = NULL );
-    void loadSubjects( int count, char** names );
+    void parseArgs( int argc, char** argv );
+    int  subjectCount() const { return _tl->subjectCount(); }
 public slots:
     void newSubject();
     void subjectUp();
@@ -74,10 +102,12 @@ public slots:
     void rollDiceLast();
     void showAbout();
 private:
-    void defineAction(const QKeySequence&, const char*);
+    void addQAction(const QKeySequence&, const char*);
     ActionTimeline(const Timeline&);
 
+    ActionTable _at;
     Timeline* _tl;
+    QListWidget* _actList;
     QComboBox* _turn;
     QLineEdit* _time;
     QComboBox* _dice;

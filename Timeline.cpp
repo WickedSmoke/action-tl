@@ -27,38 +27,37 @@ enum ColorLabelType
     CTYPE_ACTION
 };
 
-#define ACT_COUNT   12
-static const char* actionName[ ACT_COUNT ] = {
-    "Walk 10",
-    "Run 10",
-    "Attack",
-    "Defend",
 
-    "Shoot",
-    "Drink",
-    "Draw",
-    "Equip",
-
-    "Pickup",
-    "Throw",
-    "Wait 1",
-    "Wait 2"
-};
-
-static const int actionDur[ ACT_COUNT ] = {
-    3, 1, 5, 4,   5, 5, 1, 6,   3, 3, 1, 2
-};
+//----------------------------------------------------------------------------
 
 
-static int actionId( const char* str )
+int ActionTable::defineAction( const char* aname, const char* end, int dur )
 {
-    for( int i = 0; i < ACT_COUNT; ++i )
-    {
-        if( strcmp( actionName[i], str ) == 0 )
-            return i;
-    }
-    return 0;
+    int id = _entry.size() >> 1;
+
+    _entry.push_back( _strings.size() );
+    _entry.push_back( dur );
+
+    _strings.insert( _strings.end(), aname, end );
+    _strings.push_back( '\0' );
+
+    return id;
 }
+
+
+int ActionTable::actionId( const char* str ) const
+{
+    int count = _entry.size();
+    for( int i = 0; i < count; i += 2 )
+    {
+        if( strcmp( _strings.data() + _entry[i], str ) == 0 )
+            return i >> 1;
+    }
+    return -1;
+}
+
+
+//----------------------------------------------------------------------------
 
 
 // QLabel with direct color control.
@@ -122,7 +121,8 @@ protected:
 #define SUBJECT_HEIGHT(cl)  cl->fontMetrics().height()+6
 
 
-Timeline::Timeline( QWidget* parent ) : QWidget(parent)
+Timeline::Timeline( const ActionTable* at, QWidget* parent )
+    : QWidget(parent), _actions(at)
 {
     _pixPerSec = 70;
     _startTime = 0;
@@ -306,14 +306,21 @@ void Timeline::addSubject( const QString& name, bool sel )
 }
 
 
+int Timeline::subjectCount() const
+{
+    return _lo->count();
+}
+
+
 bool Timeline::appendAction( int id )
 {
     QBoxLayout* slo = selectedLayout();
     if( slo )
     {
-        ColorLabel* cl = new ColorLabel( actionName[id] );
+        ColorLabel* cl = new ColorLabel( _actions->name(id) );
         cl->ctype = CTYPE_ACTION;
-        cl->setFixedSize( _pixPerSec * actionDur[id], SUBJECT_HEIGHT(cl) );
+        cl->setFixedSize( _pixPerSec * _actions->duration(id),
+                          SUBJECT_HEIGHT(cl) );
         cl->setColor( Qt::darkGray );
 
         slo->insertWidget( slo->count() - 1, cl );
@@ -353,7 +360,8 @@ void Timeline::dropEvent(QDropEvent* ev)
     QString name( model.item(0, 0)->text() );
     //printf( "drop %s\n", CSTR(name) );
 
-    if( appendAction( actionId(CSTR(name)) ) )
+    int id = _actions->actionId(CSTR(name));
+    if( id >= 0 && appendAction( id ) )
         ev->acceptProposedAction();
 }
 
@@ -409,7 +417,7 @@ void Timeline::contextMenuEvent(QContextMenuEvent* ev)
                 bool ok;
                 double dur = QInputDialog::getDouble(this,
                         "Set Duration", "Duration:",
-                        double(cl->width()) / double(_pixPerSec), 0.1, 9.0,
+                        double(cl->width()) / double(_pixPerSec), 0.1, 10.0,
                         1, &ok );
                 if( ok )
                     cl->setFixedWidth( int(dur * _pixPerSec) );
@@ -557,23 +565,43 @@ void Timeline::wheelEvent(QWheelEvent* ev)
 //----------------------------------------------------------------------------
 
 
+struct InitialAction
+{
+    const char* name;
+    int dur;
+};
+
+#define ACT_COUNT   12
+static const InitialAction _initAction[ ACT_COUNT ] =
+{
+    { "Walk 10", 3 },
+    { "Run 10",  1 },
+    { "Attack",  5 },
+    { "Defend",  4 },
+    { "Shoot",   5 },
+    { "Drink",   5 },
+    { "Draw",    1 },
+    { "Equip",   6 },
+    { "Pickup",  3 },
+    { "Throw",   3 },
+    { "Wait 1",  1 },
+    { "Wait 2",  2 }
+};
+
+
 ActionTimeline::ActionTimeline( QWidget* parent ) : QWidget(parent)
 {
     setWindowTitle( "Action Timeline" );
 
-    _tl = new Timeline;
+    _tl = new Timeline( &_at );
     connect( _tl, SIGNAL(resolve(ColorLabel*)), SLOT(rollDice(ColorLabel*)) );
 
-    QListWidget* list = new QListWidget;
-    list->setDragEnabled(true);
-    list->setMaximumWidth( 180 );
-    list->setSizePolicy( QSizePolicy::Maximum, QSizePolicy::Expanding );
-    for( int i = 0; i < ACT_COUNT; ++i )
-    {
-        new QListWidgetItem( QString(actionName[i]), list, i );
-    }
-    connect( list, SIGNAL(itemActivated(QListWidgetItem*)),
-             this, SLOT(appendAction(QListWidgetItem*)) );
+    _actList = new QListWidget;
+    _actList->setDragEnabled(true);
+    _actList->setMaximumWidth( 180 );
+    _actList->setSizePolicy( QSizePolicy::Maximum, QSizePolicy::Expanding );
+    connect( _actList, SIGNAL(itemActivated(QListWidgetItem*)),
+             SLOT(appendAction(QListWidgetItem*)) );
 
     QPushButton* add = new QPushButton;
     add->setIcon( QIcon(":/icon/new_pc-32.png") );
@@ -641,18 +669,26 @@ ActionTimeline::ActionTimeline( QWidget* parent ) : QWidget(parent)
     lo->addWidget( about );
 
     QGridLayout* grid = new QGridLayout(this);
-    grid->addWidget( _tl,  0, 0 );
-    grid->addWidget( list, 0, 1, 2, 2 );
-    grid->addLayout( lo,   1, 0 );
+    grid->addWidget( _tl,      0, 0 );
+    grid->addWidget( _actList, 0, 1, 2, 2 );
+    grid->addLayout( lo,       1, 0 );
 
-    defineAction( QKeySequence(Qt::Key_F5),         SLOT(rollDiceLast()) );
-    defineAction( QKeySequence(Qt::CTRL+Qt::Key_T), SLOT(advance()) );
-    defineAction( QKeySequence::HelpContents,       SLOT(showAbout()) );
-    defineAction( QKeySequence::Quit,               SLOT(close()) );
+    addQAction( QKeySequence(Qt::Key_F5),         SLOT(rollDiceLast()) );
+    addQAction( QKeySequence(Qt::CTRL+Qt::Key_T), SLOT(advance()) );
+    addQAction( QKeySequence::HelpContents,       SLOT(showAbout()) );
+    addQAction( QKeySequence::Quit,               SLOT(close()) );
+
+    // Built-in character actions.
+    for( int i = 0; i < ACT_COUNT; ++i )
+    {
+        const char* name = _initAction[i].name;
+        _at.defineAction( name, name + strlen(name), _initAction[i].dur );
+        new QListWidgetItem( QString(name), _actList, i );
+    }
 }
 
 
-void ActionTimeline::defineAction( const QKeySequence& key, const char* slot )
+void ActionTimeline::addQAction( const QKeySequence& key, const char* slot )
 {
     QAction* act = new QAction( this );
     act->setShortcut( key );
@@ -661,13 +697,42 @@ void ActionTimeline::defineAction( const QKeySequence& key, const char* slot )
 }
 
 
-void ActionTimeline::loadSubjects( int count, char** names )
+void ActionTimeline::parseArgs( int argc, char** argv )
 {
-    if( count > 0 )
+    std::vector<char> nameBuf;
+    char* cp;
+    bool select = true;
+
+    for( int i = 0; i < argc; ++i )
     {
-        for( int i = 0; i < count; ++i )
-            _tl->addSubject( names[i], false );
-        _tl->select( 0 );
+        if( (cp = strchr(argv[i], ':')) )
+        {
+            nameBuf.assign( argv[i], cp );
+            nameBuf.push_back( '\0' );
+
+            int dur = atoi(cp+1);
+            if( dur < 1 )
+                dur = 1;
+            else if( dur > 10 )
+                dur = 10;
+
+            int id = _at.actionId( nameBuf.data() );
+            if( id < 0 )
+            {
+                id = _at.defineAction( argv[i], cp, dur );
+                new QListWidgetItem( QString(_at.name(id)), _actList, id );
+            }
+            else
+            {
+                // Override duration of existing action.
+                _at.setDuration( id, dur );
+            }
+        }
+        else
+        {
+            _tl->addSubject( argv[i], select );
+            select = false;
+        }
     }
 }
 
@@ -808,8 +873,8 @@ int main( int argc, char** argv )
     win.resize( 980, 350 );
     win.show();
     if( argc > 1 )
-        win.loadSubjects( argc-1, argv+1 );
-    else
+        win.parseArgs( argc-1, argv+1 );
+    if( ! win.subjectCount() )
         win.newSubject();
     return app.exec();
 }
