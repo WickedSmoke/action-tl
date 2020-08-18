@@ -571,14 +571,16 @@ struct InitialAction
     int dur;
 };
 
-#define ACT_COUNT   12
+#define ACT_COUNT   14
 static const InitialAction _initAction[ ACT_COUNT ] =
 {
     { "Walk 10", 3 },
     { "Run 10",  1 },
     { "Attack",  5 },
-    { "Defend",  4 },
+    { "Defend",  5 },
     { "Shoot",   5 },
+    { "Aimed Shot", 7 },
+    { "Quick Shot", 4 },
     { "Drink",   5 },
     { "Draw",    1 },
     { "Equip",   6 },
