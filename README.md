@@ -4,6 +4,8 @@ Action Timeline
 Action Timeline is a GUI to track character initiative and actions during
 combat for role playing games.
 
+![Screenshot](http://outguard.sourceforge.net/images/action-tl-0.6.png)
+
 Here are the basic features provided:
 
   * Track intiative order.
@@ -15,10 +17,23 @@ There is currently no way to save data but some setup can be done using
 command line arguments.
 
 
+Managing Characters
+-------------------
+
+Characters can be added with the New Character button or naming them on
+the command line.  They can be removed using the context menu "Delete" item.
+
+To select a character left click on its row or scroll the mouse wheel to move
+the selection up or down.
+
+The order of characters can be changed using the Order Up/Down buttons or
+holding **SHIFT** while scrolling the mouse wheel.
+
+
 Managing Actions
 ----------------
 
-Actions can be added to a characters timeline by either dragging them from
+Actions can be added to a character's timeline by either dragging them from
 the action list or selecting them in the list.  List selection is done by
 double-clicking the action or pressing return when the list has keyboard
 focus.
