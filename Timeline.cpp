@@ -136,13 +136,15 @@ protected:
 
 
 #define SUBJECT_NONE    -1
-#define SUBJECT_WIDTH   120
+#define SUBJECT_WIDTH   132
 #define SUBJECT_HEIGHT(cl)  cl->fontMetrics().height()+6
 
 
 Timeline::Timeline( const ActionTable* at, QWidget* parent )
     : QWidget(parent), _actions(at)
 {
+    int leftMargin = 0;
+
     _pixPerSec = 70;
     _startTime = 0;
     _turnDur = 6;
@@ -152,6 +154,7 @@ Timeline::Timeline( const ActionTable* at, QWidget* parent )
     setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Minimum );
     _lo = new QVBoxLayout(this);
     _lo->setSpacing(0);
+    _lo->setContentsMargins( leftMargin, 11, 0, 0 );
 
 
     QAction* act = new QAction( this );
@@ -159,14 +162,11 @@ Timeline::Timeline( const ActionTable* at, QWidget* parent )
     connect( act, SIGNAL(triggered(bool)), this, SLOT(deleteLastAction()) );
     addAction( act );
 
-    QMargins marg = _lo->contentsMargins();
-    marg.setTop( 10 );
-    _lo->setContentsMargins( marg );
-
     makeTimeScale( _pixPerSec );
     _scale = new QLabel( this );
     _scale->setFrameShape( QFrame::NoFrame );    // Does nothing?
-    _scale->move( marg.left() + SUBJECT_WIDTH, 0 );
+    _scale->setAlignment( Qt::AlignTop );
+    _scale->move( leftMargin + SUBJECT_WIDTH, 0 );
     _scale->setFixedWidth( _pixPerSec * _turnDur );
     _scale->setPixmap( _timeScale );
 }
