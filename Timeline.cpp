@@ -643,7 +643,7 @@ ActionTimeline::ActionTimeline( QWidget* parent ) : QWidget(parent)
     QPushButton* adv = new QPushButton;
     connect( adv, SIGNAL(clicked(bool)), this, SLOT(advance()) );
 
-    _time = new QLineEdit( "0" );
+    _time = new QLineEdit;
     _time->setFixedSize( 60, _turn->sizeHint().height() );
     _time->setValidator( new QIntValidator(0, 999, this) );
     connect( _time, SIGNAL(textEdited(const QString&)),
@@ -706,6 +706,8 @@ ActionTimeline::ActionTimeline( QWidget* parent ) : QWidget(parent)
         _at.defineAction( name, name + strlen(name), _initAction[i].dur );
         new QListWidgetItem( QString(name), _actList, i );
     }
+
+    showTime( 0 );
 }
 
 
@@ -780,6 +782,7 @@ void ActionTimeline::subjectDown()
 void ActionTimeline::turnDurationChanged(int index)
 {
     _tl->setTurnDuration( index ? 10 : 6 );
+    showTime( _tl->startTime(), false );
 }
 
 
@@ -789,17 +792,36 @@ void ActionTimeline::appendAction(QListWidgetItem* item)
 }
 
 
+void ActionTimeline::showTime( int sec, bool setEditField )
+{
+    QString str;
+    int turnDur = _turn->currentIndex() ? 10 : 6;
+
+    str.sprintf( "Turn %d, Time %02d:%02d",
+                 sec / turnDur + 1, sec / 60, sec % 60 );
+
+    if( setEditField )
+        _time->setText( QString::number( sec ) );
+    _time->setToolTip( str );
+}
+
+
 void ActionTimeline::advance()
 {
+    int turnDur = _turn->currentIndex() ? 10 : 6;
+
     _tl->saveImage();
-    _tl->advance( _turn->currentIndex() ? 10 : 6 );
-    _time->setText( QString::number( _tl->startTime() ) );
+    _tl->advance( turnDur );
+
+    showTime( _tl->startTime() );
 }
 
 
 void ActionTimeline::timeEdited()
 {
-    _tl->setStartTime( _time->text().toInt() );
+    int sec = _time->text().toInt();
+    _tl->setStartTime( sec );
+    showTime( sec, false );
 }
 
 

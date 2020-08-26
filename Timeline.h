@@ -120,6 +120,7 @@ public slots:
     void showAbout();
 private:
     void addQAction(const QKeySequence&, const char*);
+    void showTime(int sec, bool setEditField = true);
     ActionTimeline(const Timeline&);
 
     ActionTable _at;
