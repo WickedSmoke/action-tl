@@ -846,8 +846,8 @@ void ActionTimeline::rollDice( ColorLabel* cl )
     if( cl )
     {
         QVector<int> buf;
-        int len;
-        int n = evalDice( CSTR(_dice->currentText()), _emit, &buf );
+        int len, n;
+        int total = evalDice( CSTR(_dice->currentText()), _emit, &buf );
 
         QString str( cl->text() );
         if( (len = buf.size()) > 1 )
@@ -855,14 +855,15 @@ void ActionTimeline::rollDice( ColorLabel* cl )
             str.append( " (" );
             for( int i = 0; i < len; ++i )
             {
-                if( i )
-                    str.append( ' ' );
-                str.append( QString::number( buf[i] ) );
+                n = buf[i];
+                if( i && n >= 0 )
+                    str.append( '+' );
+                str.append( QString::number( n ) );
             }
             str.append( ')' );
         }
         str.append( ' ' );
-        str.append( QString::number(n) );
+        str.append( QString::number(total) );
 
         cl->setText( str );
         cl->setBase( QColor(RGB_RESOLVE) );
