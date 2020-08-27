@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 # Run "make dist" to build project.tar.gz.
-# Note that moc_Timeline.cpp currently gets included in the archive which is
+# Note that moc_*.cpp files that currently get included in the archive are
 # removed below so that the build completes OK.
 
 TIME=$(date +%H%M%S)
@@ -13,7 +13,7 @@ if [ "$1" == "win" ]; then
 	echo '
   tar xf /tmp/project.tar.gz
   cd project
-  rm moc_Timeline.cpp
+  rm moc_*.cpp
   m2; make
 ' >$HDIR/${SCRIPT}
 
@@ -32,7 +32,7 @@ else
 	echo '
   tar xf /tmp/project.tar.gz
   cd project
-  rm moc_Timeline.cpp
+  rm moc_*.cpp
   m2; make
 ' >$HDIR/${SCRIPT}
 

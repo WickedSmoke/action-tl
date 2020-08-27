@@ -1018,7 +1018,7 @@ void ActionTimeline::rollDiceLast()
 void ActionTimeline::showAbout()
 {
     QString str(
-        "<h2>Action Timeline 0.6</h2>\n"
+        "<h2>Action Timeline 0.7</h2>\n"
         "%1, &copy; 2020 Karl Robillard\n"
         "<p>Icons from game-icons.net are &copy; by"
         " Carl Olsen, Delapouite, Lorc, sbed & Viscious Speed"
