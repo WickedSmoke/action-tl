@@ -34,6 +34,8 @@
 #include <QMimeData>
 #include <QPainter>
 #include <QStandardItemModel>
+#include <QWidgetAction>
+#include "PixmapChooser.h"
 #include "Timeline.h"
 
 #define CSTR(qs)    qs.toLocal8Bit().constData()
@@ -84,7 +86,7 @@ class ColorLabel : public QLabel
 {
 public:
     ColorLabel( const QString& text, QWidget* parent = NULL )
-        : QLabel(text, parent), fill(false) {}
+        : QLabel(text, parent), fill(false), tokenCount(0) {}
 
     void setColor( const QColor& col )
     {
@@ -105,8 +107,35 @@ public:
         fill = false;
     }
 
+    void addToken( int n )
+    {
+        if( tokenCount < 6 )
+        {
+            token[ tokenCount ] = n;
+            tokenDur[ tokenCount ] = 255;
+            ++tokenCount;
+            update();
+        }
+    }
+
+    void removeToken( int index )
+    {
+        --tokenCount;
+        for( int i = index; i < tokenCount; ++i )
+        {
+            token[i] = token[i+1];
+            tokenDur[i] = tokenDur[i+1];
+        }
+        update();
+    }
+
     short ctype;
     bool  fill;
+    uint8_t token[6];
+    uint8_t tokenDur[6];
+    uint8_t tokenCount;
+
+    static std::vector<QPixmap*> tokenPixmap;
 
 protected:
     void paintEvent(QPaintEvent*)
@@ -116,7 +145,6 @@ protected:
         QColor pcol = palette().color( QPalette::Text );
         QBrush br;
         int h = height();
-        int pad = (h - fm.height()) / 2;
 
         if( fill )
         {
@@ -127,8 +155,47 @@ protected:
         p.setPen( pcol );
         p.setBrush( br );
         p.drawRect( 0, 0, width()-1, h-1 );
+#ifdef CL_CENTER
+        int pad = (h - fm.height()) / 2;
         p.drawText( 4, h - fm.descent() - pad, text() );
+#else
+        p.drawText( 4, fm.ascent() + 3, text() );
+#endif
+
+        int tokX = width() - tokenCount*18;
+        int tokY = h - 18;
+        for( int i = 0; i < tokenCount; ++i, tokX += 18 )
+        {
+            p.drawPixmap( tokX, tokY, *tokenPixmap[ token[i] ] );
+        }
     }
+};
+
+
+std::vector<QPixmap*> ColorLabel::tokenPixmap;
+
+
+//----------------------------------------------------------------------------
+
+
+class TokenMenu : public QMenu
+{
+public:
+    TokenMenu( const QString& title, QWidget* parent )
+        : QMenu(title, parent)
+    {
+        _wact = new QWidgetAction(this);
+        PixmapChooser* pmc = new PixmapChooser;
+        _wact->setDefaultWidget( pmc );
+        addAction( _wact );
+    }
+
+    PixmapChooser* chooser() {
+        return static_cast<PixmapChooser*>( _wact->defaultWidget() );
+    }
+
+private:
+    QWidgetAction* _wact;
 };
 
 
@@ -137,7 +204,15 @@ protected:
 
 #define SUBJECT_NONE    -1
 #define SUBJECT_WIDTH   132
-#define SUBJECT_HEIGHT(cl)  cl->fontMetrics().height()+6
+
+
+static int _subjectHeight( const ColorLabel* cl )
+{
+    int fh = cl->fontMetrics().height();
+    if( cl->tokenCount )
+        fh *= 2;
+    return fh + 6;
+}
 
 
 Timeline::Timeline( const ActionTable* at, QWidget* parent )
@@ -169,6 +244,40 @@ Timeline::Timeline( const ActionTable* at, QWidget* parent )
     _scale->move( leftMargin + SUBJECT_WIDTH, 0 );
     _scale->setFixedWidth( _pixPerSec * _turnDur );
     _scale->setPixmap( _timeScale );
+
+    _tokenMenu = new TokenMenu("Add Token", this);
+    PixmapChooser* pmc = _tokenMenu->chooser();
+    pmc->setPixmaps( ColorLabel::tokenPixmap );
+    connect( pmc, SIGNAL(selected(int)), SLOT(recordToken(int)) );
+}
+
+
+void Timeline::prepareTokenMenu( QMenu* menu )
+{
+    _tokenItem = -1;
+    _tokenMenu->chooser()->deselect();
+    _tokenMenuTop = menu;
+    menu->addMenu( _tokenMenu );
+}
+
+
+void Timeline::recordToken( int n )
+{
+    //printf( "KR record %d\n", n );
+    _tokenItem = n;
+
+    // NOTE: Must manually close menu when using QWidgetAction.
+    // See QTBUG-10427 which may be fixed in Qt 5.15.
+
+    //_tokenAct->trigger();     // This does nothing.
+    _tokenMenuTop->hide();      // Causes exec to exit with NULL QAction.
+}
+
+
+void Timeline::recordTokenRem( int n )
+{
+    _tokenRemoved = n;
+    _tokenMenuTop->hide();
 }
 
 
@@ -309,7 +418,7 @@ void Timeline::addSubject( const QString& name, bool sel )
 #if 1
     ColorLabel* cl = new ColorLabel(name);
     cl->ctype = CTYPE_NAME;
-    cl->setFixedSize( SUBJECT_WIDTH, SUBJECT_HEIGHT(cl) );
+    cl->setFixedSize( SUBJECT_WIDTH, _subjectHeight(cl) );
     cl->setColor( Qt::black );
 
     QBoxLayout* slo = new QHBoxLayout;
@@ -339,7 +448,7 @@ bool Timeline::appendAction( int id )
         ColorLabel* cl = new ColorLabel( _actions->name(id) );
         cl->ctype = CTYPE_ACTION;
         cl->setFixedSize( _pixPerSec * _actions->duration(id),
-                          SUBJECT_HEIGHT(cl) );
+                          _subjectHeight(cl) );
         cl->setColor( Qt::darkGray );
 
         slo->insertWidget( slo->count() - 1, cl );
@@ -404,11 +513,28 @@ void Timeline::contextMenuEvent(QContextMenuEvent* ev)
             done   = menu.addAction( "Mark Done" );
             resize = menu.addAction( "Set Duration" );
         }
+        else
+        {
+            prepareTokenMenu( &menu );
+
+            _tokenRemoved = -1;
+            if( cl->tokenCount )
+            {
+                TokenMenu* rtok = new TokenMenu("Remove Token", &menu);
+                PixmapChooser* pmc = rtok->chooser();
+                pmc->setColumns( cl->tokenCount );
+                for( int i = 0; i < cl->tokenCount; ++i )
+                    pmc->addPixmap( ColorLabel::tokenPixmap[ cl->token[i] ] );
+                connect(pmc, SIGNAL(selected(int)), SLOT(recordTokenRem(int)));
+                menu.addMenu( rtok );
+            }
+        }
         rename = menu.addAction( "Rename" );
         menu.addSeparator();
         menu.addAction( "Delete" );
 
         act = menu.exec( ev->globalPos() );
+        //printf( "KR act %p\n", act );
         if( act )
         {
             if( act == resolv )
@@ -447,6 +573,18 @@ void Timeline::contextMenuEvent(QContextMenuEvent* ev)
                     wid->deleteLater();
                 else
                     deleteSubject( subjectAt( ev->pos() ) );
+            }
+        }
+        else if( cl->ctype == CTYPE_NAME )
+        {
+            if( _tokenItem >= 0 )
+            {
+                cl->addToken( _tokenItem );
+                cl->setFixedHeight( _subjectHeight(cl) );
+            }
+            else if( _tokenRemoved >= 0 )
+            {
+                cl->removeToken( _tokenRemoved );
             }
         }
     }
@@ -882,6 +1020,9 @@ void ActionTimeline::showAbout()
     QString str(
         "<h2>Action Timeline 0.6</h2>\n"
         "%1, &copy; 2020 Karl Robillard\n"
+        "<p>Icons from game-icons.net are &copy; by"
+        " Carl Olsen, Delapouite, Lorc, sbed & Viscious Speed"
+        " and used under the CC BY 3.0 license.</p>\n"
         "<h4>Key Commands</h4>\n"
         "<table>\n"
         "<tr><td width=\"64\">Del</td><td>Delete last action</td>"
@@ -899,6 +1040,32 @@ void ActionTimeline::showAbout()
 }
 
 
+#define TOKEN_COUNT 20
+static const char* tokenFile[ TOKEN_COUNT ] =
+{
+    ":/icon/abstract-097.png",
+    ":/icon/awareness.png",
+    ":/icon/batwing-emblem.png",
+    ":/icon/bleeding-wound.png",
+    ":/icon/cobweb.png",
+    ":/icon/crown-of-thorns.png",
+    ":/icon/dead-eye.png",
+    ":/icon/dripping-blade.png",
+    ":/icon/drop.png",
+    ":/icon/flame.png",
+    ":/icon/icicles-aura.png",
+    ":/icon/key.png",
+    ":/icon/octogonal-eye.png",
+    ":/icon/primitive-torch.png",
+    ":/icon/psychic-waves.png",
+    ":/icon/rough-wound.png",
+    ":/icon/skull-crossed-bones.png",
+    ":/icon/spikes.png",
+    ":/icon/sprint.png",
+    ":/icon/terror.png"
+};
+
+
 int main( int argc, char** argv )
 {
     QApplication app( argc, argv );
@@ -906,6 +1073,9 @@ int main( int argc, char** argv )
 #if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
     qsrand( time(NULL) );
 #endif
+
+    for( int i = 0; i < TOKEN_COUNT; ++i )
+        ColorLabel::tokenPixmap.push_back( new QPixmap( tokenFile[i] ) );
 
     QIcon icon;
     icon.addFile( ":/icon/app-32.png", QSize(32,32) );

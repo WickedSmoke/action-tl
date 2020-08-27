@@ -7,5 +7,5 @@ RESOURCES += icons.qrc
 CONFIG += qt
 #CONFIG += debug
 
-HEADERS += Timeline.h
-SOURCES += Timeline.cpp
+HEADERS += Timeline.h PixmapChooser.h
+SOURCES += Timeline.cpp PixmapChooser.cpp

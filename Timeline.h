@@ -47,7 +47,10 @@ private:
 
 class QBoxLayout;
 class QLabel;
+class QMenu;
+class QWidgetAction;
 class ColorLabel;
+class TokenMenu;
 
 class Timeline : public QWidget
 {
@@ -79,7 +82,11 @@ protected:
     void mousePressEvent(QMouseEvent*);
     void wheelEvent(QWheelEvent*);
     int  subjectAt(const QPoint& pnt) const;
+private slots:
+    void recordToken(int);
+    void recordTokenRem(int);
 private:
+    void prepareTokenMenu(QMenu*);
     QBoxLayout* selectedLayout();
     ColorLabel* selectedNameLabel();
     void makeTimeScale(int);
@@ -87,12 +94,16 @@ private:
 
     const ActionTable* _actions;
     QPixmap _timeScale;
+    TokenMenu* _tokenMenu;
+    QMenu* _tokenMenuTop;
     QLabel* _scale;
     QBoxLayout* _lo;
     int _pixPerSec;     // Pixels per second scale.
     int _startTime;     // Time at left side of timeline.
     int _turnDur;
     int _subject;       // Selected subject index.
+    int _tokenItem;     // Selected _tokenMenu index.
+    int _tokenRemoved;
 };
 
 class QComboBox;

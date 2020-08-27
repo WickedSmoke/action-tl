@@ -1,0 +1,37 @@
+#!/usr/bin/bash
+
+URL=https://game-icons.net/archives/png/zip/000000/transparent/game-icons.net.png.zip
+IDIR=/tmp/icons/000000/transparent/1x1/
+
+SRC=(
+	carl-olsen/flame.png
+	delapouite/primitive-torch.png
+	lorc/awareness.png
+	lorc/batwing-emblem.png
+	lorc/bleeding-wound.png
+	lorc/cobweb.png
+	lorc/crown-of-thorns.png
+	lorc/dead-eye.png
+	lorc/dripping-blade.png
+	lorc/drop.png
+	lorc/icicles-aura.png
+	lorc/key.png
+	lorc/octogonal-eye.png
+	lorc/psychic-waves.png
+	lorc/rough-wound.png
+	lorc/skull-crossed-bones.png
+	lorc/sprint.png
+	lorc/terror.png
+	sbed/spikes.png
+	viscious-speed/abstract-097.png
+)
+
+# Site returns error "301 Moved Permanently" with automated downloads.
+#if [ $1 = '-f' ]; then
+#	curl -s "$URL" -o /tmp/game-icons.net.png.zip
+#	unzip -d /tmp /tmp/game-icons.net.png.zip
+#fi
+
+for FN in ${SRC[@]}; do
+	convert $IDIR/$FN -resize 16x16 $(basename $FN)
+done

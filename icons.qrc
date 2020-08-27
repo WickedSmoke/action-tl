@@ -8,4 +8,26 @@
 <file alias="app-16.png">art/app_icon-16.png</file>
 <file alias="new_pc-32.png">art/new_pc-32.png</file>
 </qresource>
+<qresource>
+<file>icon/abstract-097.png</file>
+<file>icon/awareness.png</file>
+<file>icon/batwing-emblem.png</file>
+<file>icon/bleeding-wound.png</file>
+<file>icon/cobweb.png</file>
+<file>icon/crown-of-thorns.png</file>
+<file>icon/dead-eye.png</file>
+<file>icon/dripping-blade.png</file>
+<file>icon/drop.png</file>
+<file>icon/flame.png</file>
+<file>icon/icicles-aura.png</file>
+<file>icon/key.png</file>
+<file>icon/octogonal-eye.png</file>
+<file>icon/primitive-torch.png</file>
+<file>icon/psychic-waves.png</file>
+<file>icon/rough-wound.png</file>
+<file>icon/skull-crossed-bones.png</file>
+<file>icon/spikes.png</file>
+<file>icon/sprint.png</file>
+<file>icon/terror.png</file>
+</qresource>
 </RCC>
