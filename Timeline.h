@@ -72,6 +72,7 @@ public:
 signals:
     void resolve(ColorLabel*);
 public slots:
+    void renameSubject();
     void deleteSubject(int);
     void deleteLastAction();
 protected:
@@ -81,6 +82,7 @@ protected:
     void contextMenuEvent(QContextMenuEvent*);
     void mousePressEvent(QMouseEvent*);
     void wheelEvent(QWheelEvent*);
+    void renameItem(ColorLabel*);
     int  subjectAt(const QPoint& pnt) const;
 private slots:
     void recordToken(int);
@@ -130,7 +132,7 @@ public slots:
     void rollDiceLast();
     void showAbout();
 private:
-    void addQAction(const QKeySequence&, const char*);
+    void addQAction(const QKeySequence&, const QObject*, const char*);
     void showTime(int sec, bool setEditField = true);
     ActionTimeline(const Timeline&);
 

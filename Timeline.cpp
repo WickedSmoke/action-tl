@@ -440,6 +440,24 @@ int Timeline::subjectCount() const
 }
 
 
+void Timeline::renameItem( ColorLabel* cl )
+{
+    bool ok;
+    QString text = QInputDialog::getText(this, "Rename", "Name:",
+                            QLineEdit::Normal, cl->text(), &ok );
+    if( ok && ! text.isEmpty() )
+        cl->setText( text );
+}
+
+
+void Timeline::renameSubject()
+{
+    ColorLabel* cl;
+    if( (cl = selectedNameLabel()) )
+        renameItem( cl );
+}
+
+
 bool Timeline::appendAction( int id )
 {
     QBoxLayout* slo = selectedLayout();
@@ -551,11 +569,7 @@ void Timeline::contextMenuEvent(QContextMenuEvent* ev)
             }
             else if( act == rename )
             {
-                bool ok;
-                QString text = QInputDialog::getText(this, "Rename", "Name:",
-                                        QLineEdit::Normal, cl->text(), &ok );
-                if( ok && ! text.isEmpty() )
-                    cl->setText( text );
+                renameItem( cl );
             }
             else if( act == resize )
             {
@@ -832,10 +846,11 @@ ActionTimeline::ActionTimeline( QWidget* parent ) : QWidget(parent)
     grid->addWidget( _actList, 0, 1, 2, 2 );
     grid->addLayout( lo,       1, 0 );
 
-    addQAction( QKeySequence(Qt::Key_F5),         SLOT(rollDiceLast()) );
-    addQAction( QKeySequence(Qt::CTRL+Qt::Key_T), SLOT(advance()) );
-    addQAction( QKeySequence::HelpContents,       SLOT(showAbout()) );
-    addQAction( QKeySequence::Quit,               SLOT(close()) );
+    addQAction( QKeySequence(Qt::Key_F2),         _tl,  SLOT(renameSubject()) );
+    addQAction( QKeySequence(Qt::Key_F5),         this, SLOT(rollDiceLast()) );
+    addQAction( QKeySequence(Qt::CTRL+Qt::Key_T), this, SLOT(advance()) );
+    addQAction( QKeySequence::HelpContents,       this, SLOT(showAbout()) );
+    addQAction( QKeySequence::Quit,               this, SLOT(close()) );
 
     // Built-in character actions.
     for( int i = 0; i < ACT_COUNT; ++i )
@@ -849,11 +864,12 @@ ActionTimeline::ActionTimeline( QWidget* parent ) : QWidget(parent)
 }
 
 
-void ActionTimeline::addQAction( const QKeySequence& key, const char* slot )
+void ActionTimeline::addQAction( const QKeySequence& key,
+                                 const QObject* receiver, const char* slot )
 {
     QAction* act = new QAction( this );
     act->setShortcut( key );
-    connect( act, SIGNAL(triggered(bool)), slot );
+    connect( act, SIGNAL(triggered(bool)), receiver, slot );
     addAction( act );
 }
 
@@ -1026,6 +1042,7 @@ void ActionTimeline::showAbout()
         "<h4>Key Commands</h4>\n"
         "<table>\n"
         "<tr><td width=\"64\">Del</td><td>Delete last action</td>"
+        "<tr><td>F2</td> <td>Rename selected character</td>"
         "<tr><td>F5</td> <td>Resolve last action</td>"
         "<tr><td>CTRL+T</td> <td>Advance to next turn</td>"
         "</table>\n"
