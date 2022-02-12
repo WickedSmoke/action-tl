@@ -58,12 +58,12 @@ Here's an example with four characters and two actions:
 How to Compile
 ==============
 
-Qt 5 is required.  Project files are provided for QMake & m2.
+Qt 5 is required.  Project files are provided for QMake & copr.
 
 To build with QMake:
 
     qmake-qt5; make
 
-To build with m2:
+To build with copr:
 
-    m2; make
+    copr
