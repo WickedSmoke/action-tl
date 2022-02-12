@@ -951,8 +951,8 @@ void ActionTimeline::showTime( int sec, bool setEditField )
     QString str;
     int turnDur = _turn->currentIndex() ? 10 : 6;
 
-    str.sprintf( "Turn %d, Time %02d:%02d",
-                 sec / turnDur + 1, sec / 60, sec % 60 );
+    str = QString::asprintf( "Turn %d, Time %02d:%02d",
+                             sec / turnDur + 1, sec / 60, sec % 60 );
 
     if( setEditField )
         _time->setText( QString::number( sec ) );
