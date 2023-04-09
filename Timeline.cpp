@@ -489,9 +489,15 @@ void Timeline::dragEnterEvent(QDragEnterEvent* ev)
 }
 
 
+#if QT_VERSION >= 0x060000
+#define POS_I(ev)    ev->position().toPoint()
+#else
+#define POS_I(ev)    ev->pos()
+#endif
+
 void Timeline::dragMoveEvent(QDragMoveEvent* ev)
 {
-    int n = subjectAt( ev->pos() );
+    int n = subjectAt( POS_I(ev) );
     if( n != SUBJECT_NONE )
         select(n);
     if( hasSelection() )
@@ -665,7 +671,7 @@ void Timeline::deleteLastAction()
 
 void Timeline::mousePressEvent(QMouseEvent* ev)
 {
-    int n = subjectAt( ev->pos() );
+    int n = subjectAt( POS_I(ev) );
     if( n != SUBJECT_NONE )
         select(n);
 }
@@ -848,7 +854,7 @@ ActionTimeline::ActionTimeline( QWidget* parent ) : QWidget(parent)
 
     addQAction( QKeySequence(Qt::Key_F2),         _tl,  SLOT(renameSubject()) );
     addQAction( QKeySequence(Qt::Key_F5),         this, SLOT(rollDiceLast()) );
-    addQAction( QKeySequence(Qt::CTRL+Qt::Key_T), this, SLOT(advance()) );
+    addQAction( QKeySequence(Qt::CTRL|Qt::Key_T), this, SLOT(advance()) );
     addQAction( QKeySequence::HelpContents,       this, SLOT(showAbout()) );
     addQAction( QKeySequence::Quit,               this, SLOT(close()) );
 

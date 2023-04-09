@@ -54,12 +54,20 @@ void PixmapChooser::mousePressEvent( QMouseEvent* ev )
     mouseMoveEvent( ev );
 }
 
+#if QT_VERSION >= 0x060000
+#define POS_X(ev)   int(ev->position().x())
+#define POS_Y(ev)   int(ev->position().y())
+#else
+#define POS_X(ev)   ev->x()
+#define POS_Y(ev)   ev->y()
+#endif
+
 void PixmapChooser::mouseReleaseEvent( QMouseEvent* ev )
 {
     if( ev->button() == Qt::LeftButton ||
         ev->button() == Qt::RightButton )
     {
-        int ns = indexAt(ev->x(), ev->y());
+        int ns = indexAt(POS_X(ev), POS_Y(ev));
         if( ns >= 0 )
             emit selected(ns);
     }
@@ -67,7 +75,7 @@ void PixmapChooser::mouseReleaseEvent( QMouseEvent* ev )
 
 void PixmapChooser::mouseMoveEvent( QMouseEvent* ev )
 {
-    int ns = indexAt(ev->x(), ev->y());
+    int ns = indexAt(POS_X(ev), POS_Y(ev));
     if( ns >= 0 && ns < int(_pix.size()) && _sel != ns )
     {
         _sel = ns;
